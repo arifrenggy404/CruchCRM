@@ -28,8 +28,10 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     mbstring \
     zip
 
-# Enable Apache mod_rewrite for Slim routing
-RUN a2enmod rewrite
+# Disable other MPMs to prevent "More than one MPM loaded" error, and enable mod_rewrite
+RUN a2dismod mpm_event mpm_worker || true \
+    && a2enmod mpm_prefork || true \
+    && a2enmod rewrite
 
 # Configure custom php.ini settings for file uploads and memory limit
 RUN echo "upload_max_filesize = 50M" > /usr/local/etc/php/conf.d/uploads.ini \
