@@ -46,7 +46,7 @@ WORKDIR /var/www/html
 COPY . /var/www/html
 
 # Install dependencies (only production packages)
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
 # Set permissions for Apache
 RUN chown -R www-data:www-data /var/www/html \
