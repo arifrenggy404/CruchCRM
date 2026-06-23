@@ -2,7 +2,6 @@
 /vendor/
 
 # Configuration files (contains database credentials)
-/Include/Config.php
 /setup/config.php
 
 # Log files and cache
