@@ -1,0 +1,686 @@
+<?php
+
+namespace ChurchCRM\model\ChurchCRM;
+
+use ChurchCRM\Authentication\AuthenticationManager;
+use ChurchCRM\Authentication\Exceptions\PasswordChangeException;
+use ChurchCRM\dto\SystemConfig;
+use ChurchCRM\Utils\KeyManagerUtils;
+use ChurchCRM\model\ChurchCRM\Base\User as BaseUser;
+use ChurchCRM\Utils\MiscUtils;
+use Defuse\Crypto\Crypto;
+use PragmaRX\Google2FA\Google2FA;
+use Propel\Runtime\Connection\ConnectionInterface;
+
+/**
+ * Skeleton subclass for representing a row from the 'user_usr' table.
+ *
+ *
+ *
+ * You should add additional methods to this class to meet the
+ * application requirements.  This class will only be generated as
+ * long as it does not already exist in the output directory.
+ */
+class User extends BaseUser
+{
+    private $provisional2FAKey;
+
+    public function getId()
+    {
+        return $this->getPersonId();
+    }
+
+    public function getName(): string
+    {
+        return $this->getPerson()->getFullName();
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->getPerson()->getEmail();
+    }
+
+    public function getFullName(): string
+    {
+        return $this->getPerson()->getFullName();
+    }
+
+    // ── Consolidated Permission Checks ─────────────────────────────
+    //
+    // Every permission method follows the same contract:
+    //   1. Admin users ALWAYS return true (admin bypasses everything).
+    //   2. Non-admins need the specific per-user flag (from user_usr
+    //      column or userconfig_ucfg row) AND, for module-gated
+    //      permissions, the system-wide feature flag to be enabled.
+    //
+    // The naming convention is `isXxxEnabled()` for all permissions,
+    // regardless of which storage layer backs the raw flag.
+    //
+    // See #8667, #8458 for the consolidation rationale.
+    // ─────────────────────────────────────────────────────────────────
+
+    // -- Per-user permissions (backed by user_usr columns) --
+
+    public function isAddRecordsEnabled(): bool
+    {
+        return $this->isAdmin() || $this->isAddRecords();
+    }
+
+    public function isEditRecordsEnabled(): bool
+    {
+        return $this->isAdmin() || $this->isEditRecords();
+    }
+
+    public function isDeleteRecordsEnabled(): bool
+    {
+        return $this->isAdmin() || $this->isDeleteRecords();
+    }
+
+    public function isMenuOptionsEnabled(): bool
+    {
+        return $this->isAdmin() || $this->isMenuOptions();
+    }
+
+    public function isManageGroupsEnabled(): bool
+    {
+        return $this->isAdmin() || $this->isManageGroups();
+    }
+
+    public function isNotesEnabled(): bool
+    {
+        return $this->isAdmin() || $this->isNotes();
+    }
+
+    public function isEditSelfEnabled(): bool
+    {
+        return $this->isAdmin() || $this->isEditSelf();
+    }
+
+    // -- Module-gated permissions (backed by userconfig_ucfg) --
+    //    These additionally require a system-wide feature flag to be ON
+    //    for non-admin users. Admins bypass the feature flag.
+
+    public function isFinanceEnabled(): bool
+    {
+        return $this->isAdmin() || (SystemConfig::getBooleanValue('bEnabledFinance') && $this->isFinance());
+    }
+
+    public function isAddEventEnabled(): bool
+    {
+        return $this->isAdmin() || $this->isEnabledSecurity('bAddEvent');
+    }
+
+    public function isEmailEnabled(): bool
+    {
+        return $this->isAdmin() || $this->isEnabledSecurity('bEmailMailto');
+    }
+
+    public function isCreateDirectoryEnabled(): bool
+    {
+        return $this->isAdmin() || $this->isEnabledSecurity('bCreateDirectory');
+    }
+
+    // -- Module view/manage permissions (combine feature flag + per-user) --
+
+    public function canViewEvents(): bool
+    {
+        return $this->isAdmin() || self::isEventsEnabled();
+    }
+
+    public function canManageEvents(): bool
+    {
+        return $this->isAdmin() || (self::isEventsEnabled() && $this->isEnabledSecurity('bAddEvent'));
+    }
+
+    /**
+     * Whether the Events module is enabled system-wide via SystemConfig.
+     * Pure system check — no per-user permission gate.
+     */
+    public static function isEventsEnabled(): bool
+    {
+        return SystemConfig::getBooleanValue('bEnabledEvents');
+    }
+
+    // -- Consolidated permission map for API/UI consumption --
+
+    /**
+     * Return a structured map of all permissions for this user.
+     * Useful for the UserEditor UI and the user settings API.
+     * Every value reflects the effective permission (with admin bypass applied).
+     *
+     * @return array<string, bool>
+     */
+    public function getAllPermissions(): array
+    {
+        return [
+            // Core record permissions (user_usr columns)
+            'isAdmin'             => $this->isAdmin(),
+            'addRecords'          => $this->isAddRecordsEnabled(),
+            'editRecords'         => $this->isEditRecordsEnabled(),
+            'deleteRecords'       => $this->isDeleteRecordsEnabled(),
+            'menuOptions'         => $this->isMenuOptionsEnabled(),
+            'manageGroups'        => $this->isManageGroupsEnabled(),
+            'finance'             => $this->isFinanceEnabled(),
+            'notes'               => $this->isNotesEnabled(),
+            'editSelf'            => $this->isEditSelfEnabled(),
+            // Module permissions (userconfig_ucfg rows)
+            'addEvent'            => $this->isAddEventEnabled(),
+            'emailMailto'         => $this->isEmailEnabled(),
+            'createDirectory'     => $this->isCreateDirectoryEnabled(),
+            // Computed module-level gates
+            'canViewEvents'       => $this->canViewEvents(),
+            'canManageEvents'     => $this->canManageEvents(),
+        ];
+    }
+
+    /**
+     * Check if the user lacks all functional admin permissions.
+     * Users with no permissions (or only EditSelf) cannot use the admin interface
+     * and should be redirected to a self-service flow or blocked.
+     *
+     * @see https://github.com/ChurchCRM/CRM/issues/8617
+     */
+    public function hasNoAdminPermissions(): bool
+    {
+        if ($this->isAdmin()) {
+            return false;
+        }
+
+        return !$this->isAddRecords()
+            && !$this->isEditRecords()
+            && !$this->isDeleteRecords()
+            && !$this->isMenuOptions()
+            && !$this->isManageGroups()
+            && !$this->isFinance()
+            && !$this->isNotes();
+    }
+
+    /**
+     * Check if the user can edit a specific person's record.
+     * Combines role-based (EditRecords) and object-level (EditSelf + family/own) authorization.
+     *
+     * @param int $personId The ID of the person to potentially edit
+     * @param int $personFamilyId The family ID of the person (0 if no family)
+     * @return bool True if user can edit this person's record
+     */
+    public function canEditPerson(int $personId, int $personFamilyId = 0): bool
+    {
+        // Users with EditRecords permission can edit anyone
+        if ($this->isEditRecordsEnabled()) {
+            return true;
+        }
+
+        // Users with EditSelf permission can edit their own record or family members
+        if ($this->isEditSelfEnabled()) {
+            // Can edit own record
+            if ($personId === $this->getId()) {
+                return true;
+            }
+
+            // Can edit family members (if person has a family)
+            if ($personFamilyId > 0 && $personFamilyId === $this->getPerson()->getFamId()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if the user can view/access a specific family's record.
+     * Admin and EditRecords users can access any family.
+     * EditSelf-only users can only access their own family.
+     *
+     * @param int $familyId The ID of the family to potentially view
+     * @return bool True if user can view this family's record
+     */
+    public function canViewFamily(int $familyId): bool
+    {
+        if ($this->isAdmin() || $this->isEditRecordsEnabled()) {
+            return true;
+        }
+        if ($this->isEditSelfEnabled()) {
+            // EditSelf users may only access their own family
+            return $familyId > 0 && $familyId === (int) $this->getPerson()->getFamId();
+        }
+        return false;
+    }
+
+    /**
+     * Update password using secure bcrypt hashing.
+     */
+    public function updatePassword(string $password): void
+    {
+        $this->setPassword($this->hashPassword($password));
+    }
+
+    /**
+     * Validate password against stored hash.
+     * Supports both legacy SHA-256 and new bcrypt formats for migration.
+     * If legacy hash matches, upgrades to bcrypt on successful validation.
+     */
+    public function isPasswordValid(string $password): bool
+    {
+        $storedHash = $this->getPassword();
+
+        // Check if this is a bcrypt hash (starts with $2y$)
+        if ($this->isBcryptHash($storedHash)) {
+            return password_verify($password, $storedHash);
+        }
+
+        // Legacy SHA-256 check for migration period
+        $legacyHash = $this->legacyHashPassword($password);
+        if (hash_equals($storedHash, $legacyHash)) {
+            // Upgrade to bcrypt on successful login
+            $this->setPassword($this->hashPassword($password));
+            $this->save();
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Hash password using bcrypt (PHP's password_hash with PASSWORD_DEFAULT).
+     * This is the secure method for new passwords.
+     */
+    public function hashPassword(string $password): string
+    {
+        return password_hash($password, PASSWORD_DEFAULT);
+    }
+
+    /**
+     * Legacy SHA-256 hashing for backward compatibility during migration.
+     * @deprecated Will be removed in a future version
+     */
+    private function legacyHashPassword(string $password): string
+    {
+        return hash('sha256', $password . $this->getPersonId());
+    }
+
+    /**
+     * Check if a hash is in bcrypt format.
+     */
+    private function isBcryptHash(string $hash): bool
+    {
+        return str_starts_with($hash, '$2y$') || str_starts_with($hash, '$2b$') || str_starts_with($hash, '$2a$');
+    }
+
+    // isAddEvent() is kept as an alias for isAddEventEnabled() since it's
+    // called by isEnabledSecurity('bAddEvent') checks elsewhere in the codebase
+    public function isAddEvent(): bool
+    {
+        return $this->isAddEventEnabled();
+    }
+
+    public function isLocked(): bool
+    {
+        return SystemConfig::getIntValue('iMaxFailedLogins') > 0 && $this->getFailedLogins() >= SystemConfig::getIntValue('iMaxFailedLogins');
+    }
+
+    public function resetPasswordToRandom(): string
+    {
+        $password = User::randomPassword();
+        $this->updatePassword($password);
+        $this->setNeedPasswordChange(true);
+        $this->setFailedLogins(0);
+
+        return $password;
+    }
+
+    public static function randomPassword(): string
+    {
+        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+        $pass = []; //remember to declare $pass as an array
+        $alphaLength = strlen($alphabet) - 1; //put the length -1 in cache
+        for ($i = 0; $i < SystemConfig::getIntValue('iMinPasswordLength'); $i++) {
+            $n = random_int(0, $alphaLength);
+            $pass[] = $alphabet[$n];
+        }
+
+        return implode('', $pass); //turn the array into a string
+    }
+
+    public static function randomApiKey(): string
+    {
+        return MiscUtils::randomToken();
+    }
+
+    public function postInsert(ConnectionInterface $con = null): void
+    {
+        $this->createTimeLineNote('created');
+    }
+
+    public function postDelete(ConnectionInterface $con = null): void
+    {
+        $this->createTimeLineNote('deleted');
+    }
+
+    public function createTimeLineNote($type): void
+    {
+        $note = new Note();
+        $note->setPerId($this->getPersonId());
+        $note->setEntered(AuthenticationManager::getCurrentUser()->getId());
+        $note->setType('user');
+
+        switch ($type) {
+            case 'created':
+                $note->setText(gettext('system user created'));
+                break;
+            case 'updated':
+                $note->setText(gettext('system user updated'));
+                break;
+            case 'deleted':
+                $note->setText(gettext('system user deleted'));
+                break;
+            case 'password-reset':
+                $note->setText(gettext('system user password reset'));
+                break;
+            case 'password-changed':
+                $note->setText(gettext('system user changed password'));
+                break;
+            case 'password-changed-admin':
+                $note->setText(gettext('system user password changed by admin'));
+                break;
+            case 'login-reset':
+                $note->setText(gettext('system user login reset'));
+                break;
+        }
+
+        $note->save();
+    }
+
+    public function isEnabledSecurity($securityConfigName): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        } elseif ($securityConfigName == 'bAdmin') {
+            return false;
+        }
+
+        if ($securityConfigName == 'bAll') {
+            return true;
+        }
+
+        if ($securityConfigName == 'bAddRecords' && $this->isAddRecordsEnabled()) {
+            return true;
+        }
+
+        if ($securityConfigName == 'bEditRecords' && $this->isEditRecordsEnabled()) {
+            return true;
+        }
+
+        if ($securityConfigName == 'bDeleteRecords' && $this->isDeleteRecordsEnabled()) {
+            return true;
+        }
+
+        if ($securityConfigName == 'bManageGroups' && $this->isManageGroupsEnabled()) {
+            return true;
+        }
+
+        if ($securityConfigName == 'bFinance' && $this->isFinanceEnabled()) {
+            return true;
+        }
+
+        if ($securityConfigName == 'bNotes' && $this->isNotesEnabled()) {
+            return true;
+        }
+
+        foreach ($this->getUserConfigs() as $userConfig) {
+            if ($userConfig->getName() == $securityConfigName) {
+                return $userConfig->getPermission() == 'TRUE';
+            }
+        }
+
+        return false;
+    }
+
+    public function getUserConfigString($userConfigName)
+    {
+        foreach ($this->getUserConfigs() as $userConfig) {
+            if ($userConfig->getName() == $userConfigName) {
+                return $userConfig->getValue();
+            }
+        }
+    }
+
+    public function setUserConfigString($userConfigName, $value)
+    {
+        foreach ($this->getUserConfigs() as $userConfig) {
+            if ($userConfig->getName() == $userConfigName) {
+                return $userConfig->setValue($value);
+            }
+        }
+    }
+
+    public function setSetting($name, $value): void
+    {
+        $setting = $this->getSetting($name);
+        if (!$setting) {
+            $setting = new UserSetting();
+            $setting->set($this, $name, $value);
+        } else {
+            $setting->setValue($value);
+        }
+        $setting->save();
+    }
+
+    public function getSettingValue($name)
+    {
+        $userSetting = $this->getSetting($name);
+
+        return $userSetting === null ? '' : $userSetting->getValue();
+    }
+
+    public function getSetting($name)
+    {
+        foreach ($this->getUserSettings() as $userSetting) {
+            if ($userSetting->getName() == $name) {
+                return $userSetting;
+            }
+        }
+
+        return null;
+    }
+
+    public function getStyle(): string
+    {
+        $skin = $this->getSetting(UserSetting::UI_STYLE) ?? 'skin-red';
+        $cssClasses = [];
+        $cssClasses[] = $skin;
+        $cssClasses[] = $this->getSetting(UserSetting::UI_BOXED);
+        $cssClasses[] = $this->getSetting(UserSetting::UI_SIDEBAR);
+
+        return implode(' ', $cssClasses);
+    }
+
+    public function isShowPledges(): bool
+    {
+        return $this->getSettingValue(UserSetting::FINANCE_SHOW_PLEDGES) === 'true';
+    }
+
+    public function isShowPayments(): bool
+    {
+        return $this->getSettingValue(UserSetting::FINANCE_SHOW_PAYMENTS) === 'true';
+    }
+
+    public function getShowSince()
+    {
+        return $this->getSettingValue(UserSetting::FINANCE_SHOW_SINCE);
+    }
+
+    /**
+     * Generates a new 2FA secret key for enrollment.
+     * Uses pragmarx/google2fa v9.0+ default: 32-character secrets (160-bit entropy).
+     * usr_TwoFactorAuthSecret (VARCHAR 255) supports both legacy 16-char and new 32-char secrets.
+     *
+     * @return string Base32-encoded TOTP secret
+     */
+    public function provisionNew2FAKey(): string
+    {
+        $google2fa = new Google2FA();
+        $key = $google2fa->generateSecretKey();
+        // store the temporary 2FA key in a private variable on this User object
+        // we don't want to update the database with the new key until we've confirmed
+        // that the user is capable of generating valid 2FA codes
+        // encrypt the 2FA key since this object and its properties are serialized into the $_SESSION store
+        // which is generally written to disk.
+        $this->provisional2FAKey = Crypto::encryptWithPassword($key, KeyManagerUtils::getTwoFASecretKey());
+
+        return $key;
+    }
+
+    public function confirmProvisional2FACode(string $twoFACode): bool
+    {
+        $google2fa = new Google2FA();
+        $window = 2;
+        $pw = Crypto::decryptWithPassword($this->provisional2FAKey, KeyManagerUtils::getTwoFASecretKey());
+        $isKeyValid = $google2fa->verifyKey($pw, $twoFACode, $window);
+        if ($isKeyValid) {
+            $this->setTwoFactorAuthSecret($this->provisional2FAKey);
+            $this->save();
+
+            return true;
+        }
+
+        return $isKeyValid;
+    }
+
+    public function remove2FAKey(): void
+    {
+        $this->setTwoFactorAuthSecret(null);
+        $this->save();
+    }
+
+    public function getDecryptedTwoFactorAuthSecret(): string
+    {
+        return Crypto::decryptWithPassword($this->getTwoFactorAuthSecret(), KeyManagerUtils::getTwoFASecretKey());
+    }
+
+    private function getDecryptedTwoFactorAuthRecoveryCodes(): array
+    {
+        return explode(',', Crypto::decryptWithPassword($this->getTwoFactorAuthRecoveryCodes(), KeyManagerUtils::getTwoFASecretKey()));
+    }
+
+    public function disableTwoFactorAuthentication(): void
+    {
+        $this->setTwoFactorAuthRecoveryCodes(null);
+        $this->setTwoFactorAuthSecret(null);
+        $this->save();
+    }
+
+    public function is2FactorAuthEnabled(): bool
+    {
+        return !empty($this->getTwoFactorAuthSecret());
+    }
+
+    public function getNewTwoFARecoveryCodes(): array
+    {
+        // generate 12 human-readable recovery codes formatted as xxxxxxxx-xxxxxxxx (lowercase hex, 64 bits of entropy each)
+        // and store as an encrypted, comma-separated list
+        $recoveryCodes = [];
+        for ($i = 0; $i < 12; $i++) {
+            // random_bytes(8) yields 16 hex characters; split into two 8-char segments for xxxxxxxx-xxxxxxxx format
+            $hex = bin2hex(random_bytes(8));
+            $recoveryCodes[$i] = substr($hex, 0, 8) . '-' . substr($hex, 8, 8);
+        }
+        $recoveryCodesString = implode(',', $recoveryCodes);
+        $this->setTwoFactorAuthRecoveryCodes(Crypto::encryptWithPassword($recoveryCodesString, KeyManagerUtils::getTwoFASecretKey()));
+        $this->save();
+
+        return $recoveryCodes;
+    }
+
+    public function isTwoFACodeValid(string $twoFACode): bool
+    {
+        $google2fa = new Google2FA();
+        $window = 2;
+        $timestamp = $google2fa->verifyKeyNewer($this->getDecryptedTwoFactorAuthSecret(), $twoFACode, $this->getTwoFactorAuthLastKeyTimestamp(), $window);
+        if ($timestamp !== false) {
+            $this->setTwoFactorAuthLastKeyTimestamp($timestamp);
+            $this->save();
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function isTwoFaRecoveryCodeValid(string $twoFaRecoveryCode): bool
+    {
+        // checks for validity of a 2FA recovery code
+        // if the specified code was valid, the code is also removed.
+        // New-format codes (xxxxxxxx-xxxxxxxx lowercase hex) are compared with normalization:
+        // hyphens/spaces stripped and lowercased, so users can type them either way.
+        // Legacy base64 codes are compared byte-exact to preserve their original entropy
+        // and avoid case-collision edge cases.
+        $newFormatRegex = '/^[a-f0-9]+-?[a-f0-9]+$/i';
+        $inputIsNewFormat = (bool) preg_match($newFormatRegex, $twoFaRecoveryCode);
+        $normalizedInput = str_replace(['-', ' '], '', strtolower($twoFaRecoveryCode));
+
+        $codes = $this->getDecryptedTwoFactorAuthRecoveryCodes();
+        foreach ($codes as $key => $code) {
+            $storedIsNewFormat = (bool) preg_match($newFormatRegex, $code);
+            $matches = $inputIsNewFormat && $storedIsNewFormat
+                ? str_replace(['-', ' '], '', strtolower($code)) === $normalizedInput
+                : hash_equals($code, $twoFaRecoveryCode);
+
+            if ($matches) {
+                unset($codes[$key]);
+                $recoveryCodesString = implode(',', $codes);
+                $this->setTwoFactorAuthRecoveryCodes(Crypto::encryptWithPassword($recoveryCodesString, KeyManagerUtils::getTwoFASecretKey()));
+                $this->save();
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function adminSetUserPassword(string $newPassword): void
+    {
+        $this->updatePassword($newPassword);
+        $this->setNeedPasswordChange(false);
+        $this->save();
+        $this->createTimeLineNote('password-changed-admin');
+    }
+
+    public function userChangePassword($oldPassword, $newPassword): void
+    {
+        if (!$this->isPasswordValid($oldPassword)) {
+            throw new PasswordChangeException('Old', gettext('Incorrect password supplied for current user'));
+        }
+
+        if (!$this->getIsPasswordPermissible($newPassword)) {
+            throw new PasswordChangeException('New', gettext('Your password choice is too obvious. Please choose something else.'));
+        }
+
+        if (strlen($newPassword) < SystemConfig::getIntValue('iMinPasswordLength')) {
+            throw new PasswordChangeException('New', gettext('Your new password must be at least') . ' ' . SystemConfig::getIntValue('iMinPasswordLength') . ' ' . gettext('characters'));
+        }
+
+        if ($newPassword == $oldPassword) {
+            throw new PasswordChangeException('New', gettext('Your new password must not match your old one.'));
+        }
+
+        if (levenshtein(strtolower($newPassword), strtolower($oldPassword)) < SystemConfig::getIntValue('iMinPasswordChange')) {
+            throw new PasswordChangeException('New', gettext('Your new password is too similar to your old one.'));
+        }
+
+        $this->updatePassword($newPassword);
+        $this->setNeedPasswordChange(false);
+        $this->save();
+        $this->createTimeLineNote('password-changed');
+    }
+
+    private function getIsPasswordPermissible($newPassword): bool
+    {
+        $aBadPasswords = explode(',', strtolower(SystemConfig::getValue('aDisallowedPasswords')));
+        $aBadPasswords[] = strtolower($this->getPerson()->getFirstName());
+        $aBadPasswords[] = strtolower($this->getPerson()->getMiddleName());
+        $aBadPasswords[] = strtolower($this->getPerson()->getLastName());
+
+        return !in_array(strtolower($newPassword), $aBadPasswords);
+    }
+}

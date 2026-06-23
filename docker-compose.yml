@@ -1,0 +1,41 @@
+services:
+  app:
+    build: .
+    container_name: churchcrm-app
+    ports:
+      - "8080:80"
+    volumes:
+      # Persist configuration, uploaded media, and logs
+      - churchcrm-config:/var/www/html/Include
+      - churchcrm-images:/var/www/html/Images
+      - churchcrm-logs:/var/www/html/logs
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+
+  db:
+    image: mysql:8.0
+    container_name: churchcrm-db
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: churchcrm_root_password
+      MYSQL_DATABASE: churchcrm
+      MYSQL_USER: churchcrm_user
+      MYSQL_PASSWORD: churchcrm_password
+    volumes:
+      - churchcrm-db-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pchurchcrm_root_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+volumes:
+  churchcrm-config:
+  churchcrm-images:
+  churchcrm-logs:
+  churchcrm-db-data:

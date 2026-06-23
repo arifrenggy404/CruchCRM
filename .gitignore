@@ -1,0 +1,20 @@
+# PHP Dependencies
+/vendor/
+
+# Configuration files (contains database credentials)
+/Include/Config.php
+/setup/config.php
+
+# Log files and cache
+/logs/*.log
+/tmp_attach/*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE & Tool configurations
+.idea/
+.vscode/
+.gemini/
+.agents/

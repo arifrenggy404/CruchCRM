@@ -1,0 +1,12 @@
+.git
+.gitignore
+.dockerignore
+docker-compose.yml
+Dockerfile
+vendor/
+Include/Config.php
+logs/*.log
+tmp_attach/*
+node_modules/
+.gemini/
+.agents/

@@ -1,0 +1,79 @@
+<?php
+
+namespace ChurchCRM\dto;
+
+use ChurchCRM\model\ChurchCRM\Calendar;
+use ChurchCRM\model\ChurchCRM\Event;
+
+class FullCalendarEvent
+{
+    //the properties of this DTO are designed to align with the JSON object
+    //expected by FullCalendar JS: https://fullcalendar.io/docs/event_data/Event_Object/
+
+    public string $title;
+    public string $start; // date-string
+    public ?string $backgroundColor = null;
+    public ?string $textColor = null;
+    public ?string $end = null; // date-string
+    public bool $allDay;
+    public ?string $url = null;
+    public string $id;
+    public bool $editable;
+    /** @var array<string,string>|null Extra metadata passed through to FullCalendar extendedProps */
+    public ?array $extendedProps = null;
+
+    public static function createFromEvent(Event $CRMEvent, Calendar $CRMCalendar): self
+    {
+        $fce = new self();
+
+        $fce->title = $CRMEvent->getTitle();
+        $fce->allDay = ($CRMEvent->getEnd() === null ? true : false);
+        
+        // For all-day events, use date-only format (Y-m-d) to avoid timezone issues
+        // For timed events, use ISO 8601 format (c) which includes time and timezone
+        if ($fce->allDay) {
+            $fce->start = $CRMEvent->getStart('Y-m-d');
+            $fce->end = null; // All-day events don't need an end date in FullCalendar
+        } else {
+            $fce->start = $CRMEvent->getStart('c');
+            $fce->end = $CRMEvent->getEnd('c');
+        }
+        
+        $fce->id = $CRMEvent->getId();
+        $fce->backgroundColor = '#' . $CRMCalendar->getBackgroundColor();
+        $fce->textColor = '#' . $CRMCalendar->getForegroundColor();
+        $fce->editable = $CRMEvent->isEditable();
+
+        $url = $CRMEvent->getURL();
+        if ($url) {
+            $fce->url = $url;
+        }
+
+        // Build extendedProps from description and holiday metadata
+        $extendedProps = [];
+
+        $desc = $CRMEvent->getDesc();
+        if ($desc) {
+            $extendedProps['description'] = strip_tags($desc);
+        }
+
+        try {
+            $country = $CRMEvent->getVirtualColumn('holidayCountry');
+            $type    = $CRMEvent->getVirtualColumn('holidayType');
+            if ($country !== null) {
+                $extendedProps['country'] = $country;
+            }
+            if ($type !== null) {
+                $extendedProps['type'] = $type;
+            }
+        } catch (\Throwable $e) {
+            // not a holiday event — virtual columns absent
+        }
+
+        if (!empty($extendedProps)) {
+            $fce->extendedProps = $extendedProps;
+        }
+
+        return $fce;
+    }
+}
