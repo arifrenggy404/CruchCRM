@@ -757,6 +757,58 @@ class Bootstrapper
 
             self::$bootStrapLogger->info("Database translation check completed.");
 
+            // === config_cfg table: translate default report/letter texts ===
+            // These are only updated if they still hold the original English default value,
+            // so user-customised values are never overwritten.
+            $cfgTranslations = [
+                // Tax report
+                'sTaxReport1'       => ['This letter shows our record of your payments for',
+                                        'Surat ini menunjukkan catatan pembayaran Anda untuk'],
+                'sTaxReport2'       => ['Thank you for your help in making a difference. We greatly appreciate your gift!',
+                                        'Terima kasih atas bantuan Anda. Kami sangat menghargai pemberian Anda!'],
+                'sTaxReport3'       => ['If you have any questions or corrections to make to this report, please contact the church at the above number during business hours, 9am to 4pm, M-F.',
+                                        'Jika Anda memiliki pertanyaan atau koreksi, silakan hubungi gereja di nomor di atas selama jam kerja, Senin-Jumat pukul 09.00-16.00.'],
+                // Zero givers (same defaults as tax report)
+                'sZeroGivers'       => ['This letter shows our record of your payments for',
+                                        'Surat ini menunjukkan catatan pembayaran Anda untuk'],
+                'sZeroGivers2'      => ['Thank you for your help in making a difference. We greatly appreciate your gift!',
+                                        'Terima kasih atas bantuan Anda. Kami sangat menghargai pemberian Anda!'],
+                'sZeroGivers3'      => ['If you have any questions or corrections to make to this report, please contact the church at the above number during business hours, 9am to 4pm, M-F.',
+                                        'Jika Anda memiliki pertanyaan atau koreksi, silakan hubungi gereja di nomor di atas selama jam kerja, Senin-Jumat pukul 09.00-16.00.'],
+                // Pledge reminder
+                'sReminder1'        => ['This letter shows our record of your pledge and payments for fiscal year',
+                                        'Surat ini menunjukkan catatan janji dan pembayaran Anda untuk tahun anggaran'],
+                'sReminderNoPledge' => ['Pledges: We do not have record of a pledge for from you for this fiscal year.',
+                                        'Janji: Kami tidak memiliki catatan janji dari Anda untuk tahun anggaran ini.'],
+                'sReminderNoPayments' => ['Payments: We do not have record of a pledge for from you for this fiscal year.',
+                                          'Pembayaran: Kami tidak memiliki catatan pembayaran dari Anda untuk tahun anggaran ini.'],
+                // Confirmation letter
+                'sConfirm1'         => ['This letter shows the information we have in our database with respect to your family.  Please review, mark-up as necessary, and return this form to the church office.',
+                                        'Surat ini menampilkan informasi yang kami miliki dalam database kami mengenai keluarga Anda. Harap periksa, tandai jika ada perubahan, dan kembalikan formulir ini ke kantor gereja.'],
+                'sConfirm2'         => ['Thank you very much for helping us to update this information.',
+                                        'Terima kasih banyak atas bantuan Anda dalam memperbarui informasi ini.'],
+                'sConfirm4'         => ['[  ] I no longer want to be associated with the church (check here to be removed from our records).',
+                                        '[  ] Saya tidak lagi ingin terhubung dengan gereja (centang di sini untuk dihapus dari catatan kami).'],
+                // Pledge summary
+                'sPledgeSummary1'   => ['Summary of pledges and payments for the fiscal year',
+                                        'Ringkasan janji dan pembayaran untuk tahun anggaran'],
+                'sPledgeSummary2'   => [' as of', ' per'],
+                // Directory disclaimer
+                'sDirectoryDisclaimer1' => ["Every effort was made to ensure the accuracy of this directory.  If there are any errors or omissions, please contact the church office.\n\nThis directory is for the use of the people of",
+                                            "Setiap upaya telah dilakukan untuk memastikan keakuratan direktori ini. Jika ada kesalahan atau kekurangan, silakan hubungi kantor gereja.\n\nDirektori ini digunakan untuk keperluan jemaat"],
+                'sDirectoryDisclaimer2' => [', and the information contained in it may not be used for business or commercial purposes.',
+                                            ', dan informasi yang terkandung di dalamnya tidak boleh digunakan untuk keperluan bisnis atau komersial.'],
+                // Letter greeting/closing
+                'sConfirmSincerely' => ['Sincerely', 'Hormat kami'],
+                'sDear'             => ['Dear', 'Kepada Yth.'],
+            ];
+            foreach ($cfgTranslations as $cfgName => [$englishDefault, $indonesian]) {
+                $s = $connection->prepare(
+                    "UPDATE config_cfg SET cfg_value=? WHERE cfg_name=? AND cfg_value=?"
+                );
+                $s->execute([$indonesian, $cfgName, $englishDefault]);
+            }
+
         } catch (\Exception $e) {
             self::$bootStrapLogger->warning("Failed to translate database lists: " . $e->getMessage());
         }
