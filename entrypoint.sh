@@ -11,4 +11,4 @@ echo "Enabling mpm_prefork..."
 a2enmod mpm_prefork || true
 
 echo "=== Starting Apache ==="
-exec apache2-foreground "$@"
+exec "$@"
