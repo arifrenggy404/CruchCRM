@@ -29,5 +29,8 @@ if [ -n "$RAILWAY_PUBLIC_DOMAIN" ]; then
   echo "UseCanonicalName On" >> /etc/apache2/apache2.conf
 fi
 
+# Run database translation in the background (allows MySQL to initialize first)
+(sleep 10 && php /var/www/html/translate_db.php) >/dev/null 2>&1 &
+
 echo "=== Starting Apache ==="
 exec "$@"

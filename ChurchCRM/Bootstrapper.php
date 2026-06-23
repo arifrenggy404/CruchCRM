@@ -110,6 +110,7 @@ class Bootstrapper
         if (self::isDatabaseEmpty()) {
             self::installChurchCRMSchema();
         }
+        self::translateDatabaseIfNeeded();
         self::initSession();
         
         // Initialize SystemConfig with database values only once during bootstrap
@@ -635,5 +636,75 @@ class Bootstrapper
         $installVersion = VersionUtils::getInstalledVersion();
         self::$bootStrapLogger->debug("Checking versions: " . $dbVersion . " == " . $installVersion);
         return $dbVersion == $installVersion;
+    }
+
+    private static function translateDatabaseIfNeeded(): void
+    {
+        try {
+            $connection = Propel::getConnection();
+            
+            // Check if we need to translate (e.g. check if 'Head of Household' exists in list_lst for lst_ID = 2)
+            $stmt = $connection->prepare("SELECT COUNT(*) FROM list_lst WHERE lst_ID = 2 AND lst_OptionName = 'Head of Household'");
+            $stmt->execute();
+            if ($stmt->fetchColumn() > 0) {
+                self::$bootStrapLogger->info("Translating database lists to Indonesian...");
+                
+                // 1. Person Classifications (lst_ID = 1)
+                $classifications = [
+                    1 => 'Anggota',
+                    2 => 'Jemaat Aktif',
+                    3 => 'Tamu',
+                    4 => 'Bukan Jemaat (Staf)',
+                    5 => 'Bukan Jemaat'
+                ];
+                foreach ($classifications as $optionId => $name) {
+                    $stmtUpdate = $connection->prepare("UPDATE list_lst SET lst_OptionName = ? WHERE lst_ID = 1 AND lst_OptionID = ? AND lst_OptionName IN ('Member', 'Regular Attender', 'Guest', 'Non-Attender (staff)', 'Non-Attender')");
+                    $stmtUpdate->execute([$name, $optionId]);
+                }
+
+                // 2. Family Roles (lst_ID = 2)
+                $familyRoles = [
+                    1 => 'Kepala Keluarga',
+                    2 => 'Pasangan (Suami/Istri)',
+                    3 => 'Anak',
+                    4 => 'Kerabat Lain',
+                    5 => 'Bukan Kerabat'
+                ];
+                foreach ($familyRoles as $optionId => $name) {
+                    $stmtUpdate = $connection->prepare("UPDATE list_lst SET lst_OptionName = ? WHERE lst_ID = 2 AND lst_OptionID = ? AND lst_OptionName IN ('Head of Household', 'Spouse', 'Child', 'Other Relative', 'Non Relative')");
+                    $stmtUpdate->execute([$name, $optionId]);
+                }
+
+                // 3. Group Types (lst_ID = 3)
+                $groupTypes = [
+                    1 => 'Pelayanan',
+                    2 => 'Tim Kerja',
+                    3 => 'PA (Pendalaman Alkitab)',
+                    4 => 'Kelas Sekolah Minggu'
+                ];
+                foreach ($groupTypes as $optionId => $name) {
+                    $stmtUpdate = $connection->prepare("UPDATE list_lst SET lst_OptionName = ? WHERE lst_ID = 3 AND lst_OptionID = ? AND lst_OptionName IN ('Ministry', 'Team', 'Bible Study', 'Sunday School Class')");
+                    $stmtUpdate->execute([$name, $optionId]);
+                }
+
+                // 4. Sunday School Teacher/Student Roles (lst_ID = 10, 12)
+                $teacherStudentRoles = [
+                    1 => 'Pengajar',
+                    2 => 'Murid'
+                ];
+                foreach ($teacherStudentRoles as $optionId => $name) {
+                    $stmtUpdate = $connection->prepare("UPDATE list_lst SET lst_OptionName = ? WHERE lst_ID IN (10, 12) AND lst_OptionID = ? AND lst_OptionName IN ('Teacher', 'Student')");
+                    $stmtUpdate->execute([$name, $optionId]);
+                }
+
+                // 5. Sunday School Member Roles (lst_ID = 11)
+                $stmtUpdate = $connection->prepare("UPDATE list_lst SET lst_OptionName = 'Anggota' WHERE lst_ID = 11 AND lst_OptionID = 1 AND lst_OptionName = 'Member'");
+                $stmtUpdate->execute();
+                
+                self::$bootStrapLogger->info("Database lists translated successfully.");
+            }
+        } catch (\Exception $e) {
+            self::$bootStrapLogger->warning("Failed to translate database lists: " . $e->getMessage());
+        }
     }
 }
