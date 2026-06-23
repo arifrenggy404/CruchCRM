@@ -3,6 +3,11 @@ Options -Indexes
 
 RewriteEngine On
 
+# Redirect directories without trailing slash to trailing slash version with HTTPS to prevent port leak
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_URI} !(.*)/$
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1/ [R=301,L]
+
 # Automatically handle subdirectory installations
 # The RewriteRule will pass the matched path to index.php
 # ChurchCRM uses the $sRootPath from Config.php to handle subdirectories
