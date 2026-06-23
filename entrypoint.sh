@@ -18,10 +18,15 @@ if [ -n "$PORT" ]; then
 fi
 
 # Fix Apache self-referential redirects leaking internal port (e.g. :8080) behind proxy
-if ! grep -q "UseCanonicalPhysicalPort" /etc/apache2/apache2.conf; then
-  echo "Configuring Apache reverse proxy redirection..."
-  echo "UseCanonicalName Off" >> /etc/apache2/apache2.conf
-  echo "UseCanonicalPhysicalPort Off" >> /etc/apache2/apache2.conf
+# Clean up any previously appended settings to keep the file clean on restarts
+sed -i '/UseCanonicalName/d' /etc/apache2/apache2.conf
+sed -i '/UseCanonicalPhysicalPort/d' /etc/apache2/apache2.conf
+sed -i '/ServerName/d' /etc/apache2/apache2.conf
+
+if [ -n "$RAILWAY_PUBLIC_DOMAIN" ]; then
+  echo "Configuring Apache ServerName to prevent port leaks ($RAILWAY_PUBLIC_DOMAIN)..."
+  echo "ServerName https://$RAILWAY_PUBLIC_DOMAIN" >> /etc/apache2/apache2.conf
+  echo "UseCanonicalName On" >> /etc/apache2/apache2.conf
 fi
 
 echo "=== Starting Apache ==="
