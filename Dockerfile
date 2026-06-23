@@ -12,7 +12,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libonig-dev \
     libcurl4-openssl-dev \
     gettext \
+    locales \
     && rm -rf /var/lib/apt/lists/*
+
+# Generate locales
+RUN sed -i -e 's/# id_ID.UTF-8 UTF-8/id_ID.UTF-8 UTF-8/' /etc/locale.gen \
+    && sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
+    && locale-gen
+
+# Set default locale environment variables
+ENV LANG id_ID.UTF-8
+ENV LANGUAGE id_ID:id
+ENV LC_ALL id_ID.UTF-8
 
 # Configure and install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
