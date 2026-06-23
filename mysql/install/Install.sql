@@ -63,7 +63,7 @@ CREATE TABLE `donationfund_fun` (
 --
 
 INSERT INTO `donationfund_fun` (`fun_ID`, `fun_Active`, `fun_Name`, `fun_Description`, `fun_Order`) VALUES
-  (1, 'true', 'Pledges', 'Pledge income for the operating budget', 1);
+  (1, 'true', 'Persembahan', 'Pemasukan persembahan untuk anggaran operasional', 1);
 
 -- --------------------------------------------------------
 
@@ -84,10 +84,10 @@ CREATE TABLE `eventcountnames_evctnm` (
 --
 
 INSERT INTO `eventcountnames_evctnm` (`evctnm_countid`, `evctnm_eventtypeid`, `evctnm_countname`) VALUES
-  (1, 1, 'Members'),
-  (2, 1, 'Visitors'),
-  (3, 2, 'Members'),
-  (4, 2, 'Visitors');
+  (1, 1, 'Jemaat'),
+  (2, 1, 'Pengunjung'),
+  (3, 2, 'Jemaat'),
+  (4, 2, 'Pengunjung');
 
 -- --------------------------------------------------------
 
@@ -191,8 +191,8 @@ CREATE TABLE `event_types` (
 --
 
 INSERT INTO `event_types` (`type_id`, `type_name`, `type_defstarttime`, `type_defrecurtype`, `type_defrecurDOW`, `type_defrecurDOM`, `type_defrecurDOY`, `type_active`) VALUES
-  (1, 'Church Service', '10:30:00', 'weekly', 'Sunday', '', '2016-01-01', 1),
-  (2, 'Sunday School', '09:30:00', 'weekly', 'Sunday', '', '2016-01-01', 1);
+  (1, 'Ibadah Minggu', '10:30:00', 'weekly', 'Sunday', '', '2016-01-01', 1),
+  (2, 'Sekolah Minggu', '09:30:00', 'weekly', 'Sunday', '', '2016-01-01', 1);
 
 -- --------------------------------------------------------
 
@@ -207,8 +207,8 @@ CREATE TABLE `calendars` (
 ) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 
 INSERT INTO `calendars` (`calendar_id`,`name`,`accesstoken`,`foregroundColor`,`backgroundColor`) VALUES
- (1,"Public Calendar",NULL,"FFFFFF","00AA00"),
- (2,"Private Calendar",NULL,"FFFFFF","0000AA");
+ (1,"Kalender Umum",NULL,"FFFFFF","00AA00"),
+ (2,"Kalender Pribadi",NULL,"FFFFFF","0000AA");
 
 # This is a join-table to link an event with a calendar
 CREATE TABLE `calendar_events` (
@@ -588,9 +588,9 @@ CREATE TABLE `propertytype_prt` (
 --
 
 INSERT INTO `propertytype_prt` (`prt_ID`, `prt_Class`, `prt_Name`, `prt_Description`) VALUES
-  (1, 'p', 'General', 'General Person Properties'),
-  (2, 'f', 'General', 'General Family Properties'),
-  (3, 'g', 'General', 'General Group Properties');
+  (1, 'p', 'Umum', 'Properti Umum Jemaat'),
+  (2, 'f', 'Umum', 'Properti Umum Keluarga'),
+  (3, 'g', 'Umum', 'Properti Umum Kelompok');
 
 -- --------------------------------------------------------
 
@@ -613,9 +613,9 @@ CREATE TABLE `property_pro` (
 --
 
 INSERT INTO `property_pro` (`pro_ID`, `pro_Class`, `pro_prt_ID`, `pro_Name`, `pro_Description`, `pro_Prompt`) VALUES
-  (1, 'p', 1, 'Disabled', 'has a disability.', 'What is the nature of the disability?'),
-  (2, 'f', 2, 'Single Parent', 'is a single-parent household.', ''),
-  (3, 'g', 3, 'Youth', 'is youth-oriented.', '');
+  (1, 'p', 1, 'Penyandang Disabilitas', 'memiliki disabilitas.', 'Apa jenis disabilitasnya?'),
+  (2, 'f', 2, 'Orang Tua Tunggal', 'adalah rumah tangga orang tua tunggal.', ''),
+  (3, 'g', 3, 'Pemuda', 'berorientasi pada pemuda.', '');
 
 -- --------------------------------------------------------
 
@@ -636,15 +636,15 @@ CREATE TABLE `queryparameteroptions_qpo` (
 --
 
 INSERT INTO `queryparameteroptions_qpo` (`qpo_qrp_ID`, `qpo_Display`, `qpo_Value`) VALUES
-  (4, 'Male', '1'),
-  (4, 'Female', '2'),
-  (6, 'Male', '1'),
-  (6, 'Female', '2'),
-  (15, 'Name', 'CONCAT(COALESCE(`per_FirstName`,''''),COALESCE(`per_MiddleName`,''''),COALESCE(`per_LastName`,''''))'),
-  (15, 'Zip Code', 'fam_Zip'),
-  (15, 'State', 'fam_State'),
-  (15, 'City', 'fam_City'),
-  (15, 'Home Phone', 'per_HomePhone'),
+  (4, 'Laki-laki', '1'),
+  (4, 'Perempuan', '2'),
+  (6, 'Laki-laki', '1'),
+  (6, 'Perempuan', '2'),
+  (15, 'Nama', 'CONCAT(COALESCE(`per_FirstName`,''''),COALESCE(`per_MiddleName`,''''),COALESCE(`per_LastName`,''''))'),
+  (15, 'Kode Pos', 'fam_Zip'),
+  (15, 'Provinsi', 'fam_State'),
+  (15, 'Kota', 'fam_City'),
+  (15, 'Telepon Rumah', 'per_HomePhone'),
   (27, '2012/2013', '17'),
   (27, '2013/2014', '18'),
   (27, '2014/2015', '19'),
@@ -690,12 +690,12 @@ INSERT INTO `queryparameteroptions_qpo` (`qpo_qrp_ID`, `qpo_Display`, `qpo_Value
   (31, '2021/2022', '26'),
   (31, '2022/2023', '27'),
   (15, 'Email', 'per_Email'),
-  (15, 'WorkEmail', 'per_WorkEmail'),
-  (33, 'Member', '1'),
-  (33, 'Regular Attender', '2'),
-  (33, 'Guest', '3'),
-  (33, 'Non-Attender', '4'),
-  (33, 'Non-Attender (staff)', '5');
+  (15, 'Email Kerja', 'per_WorkEmail'),
+  (33, 'Anggota', '1'),
+  (33, 'Jemaat Aktif', '2'),
+  (33, 'Tamu', '3'),
+  (33, 'Bukan Jemaat', '4'),
+  (33, 'Bukan Jemaat (Staf)', '5');
 
 -- --------------------------------------------------------
 

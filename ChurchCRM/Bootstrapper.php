@@ -642,69 +642,124 @@ class Bootstrapper
     {
         try {
             $connection = Propel::getConnection();
-            
-            // Check if we need to translate (e.g. check if 'Head of Household' exists in list_lst for lst_ID = 2)
-            $stmt = $connection->prepare("SELECT COUNT(*) FROM list_lst WHERE lst_ID = 2 AND lst_OptionName = 'Head of Household'");
-            $stmt->execute();
-            if ($stmt->fetchColumn() > 0) {
-                self::$bootStrapLogger->info("Translating database lists to Indonesian...");
-                
-                // 1. Person Classifications (lst_ID = 1)
-                $classifications = [
-                    1 => 'Anggota',
-                    2 => 'Jemaat Aktif',
-                    3 => 'Tamu',
-                    4 => 'Bukan Jemaat (Staf)',
-                    5 => 'Bukan Jemaat'
-                ];
-                foreach ($classifications as $optionId => $name) {
-                    $stmtUpdate = $connection->prepare("UPDATE list_lst SET lst_OptionName = ? WHERE lst_ID = 1 AND lst_OptionID = ? AND lst_OptionName IN ('Member', 'Regular Attender', 'Guest', 'Non-Attender (staff)', 'Non-Attender')");
-                    $stmtUpdate->execute([$name, $optionId]);
-                }
 
-                // 2. Family Roles (lst_ID = 2)
-                $familyRoles = [
-                    1 => 'Kepala Keluarga',
-                    2 => 'Pasangan (Suami/Istri)',
-                    3 => 'Anak',
-                    4 => 'Kerabat Lain',
-                    5 => 'Bukan Kerabat'
-                ];
-                foreach ($familyRoles as $optionId => $name) {
-                    $stmtUpdate = $connection->prepare("UPDATE list_lst SET lst_OptionName = ? WHERE lst_ID = 2 AND lst_OptionID = ? AND lst_OptionName IN ('Head of Household', 'Spouse', 'Child', 'Other Relative', 'Non Relative')");
-                    $stmtUpdate->execute([$name, $optionId]);
-                }
+            // Run all translations unconditionally using conditional UPDATE (only updates if English term exists)
+            self::$bootStrapLogger->info("Checking and translating database lists to Indonesian...");
 
-                // 3. Group Types (lst_ID = 3)
-                $groupTypes = [
-                    1 => 'Pelayanan',
-                    2 => 'Tim Kerja',
-                    3 => 'PA (Pendalaman Alkitab)',
-                    4 => 'Kelas Sekolah Minggu'
-                ];
-                foreach ($groupTypes as $optionId => $name) {
-                    $stmtUpdate = $connection->prepare("UPDATE list_lst SET lst_OptionName = ? WHERE lst_ID = 3 AND lst_OptionID = ? AND lst_OptionName IN ('Ministry', 'Team', 'Bible Study', 'Sunday School Class')");
-                    $stmtUpdate->execute([$name, $optionId]);
-                }
+            // === list_lst table ===
 
-                // 4. Sunday School Teacher/Student Roles (lst_ID = 10, 12)
-                $teacherStudentRoles = [
-                    1 => 'Pengajar',
-                    2 => 'Murid'
-                ];
-                foreach ($teacherStudentRoles as $optionId => $name) {
-                    $stmtUpdate = $connection->prepare("UPDATE list_lst SET lst_OptionName = ? WHERE lst_ID IN (10, 12) AND lst_OptionID = ? AND lst_OptionName IN ('Teacher', 'Student')");
-                    $stmtUpdate->execute([$name, $optionId]);
-                }
-
-                // 5. Sunday School Member Roles (lst_ID = 11)
-                $stmtUpdate = $connection->prepare("UPDATE list_lst SET lst_OptionName = 'Anggota' WHERE lst_ID = 11 AND lst_OptionID = 1 AND lst_OptionName = 'Member'");
-                $stmtUpdate->execute();
-                
-                self::$bootStrapLogger->info("Database lists translated successfully.");
+            // 1. Person Classifications (lst_ID = 1)
+            $map = [
+                'Member'               => 'Anggota',
+                'Regular Attender'     => 'Jemaat Aktif',
+                'Guest'                => 'Tamu',
+                'Non-Attender (staff)' => 'Bukan Jemaat (Staf)',
+                'Non-Attender'         => 'Bukan Jemaat',
+            ];
+            foreach ($map as $en => $id) {
+                $s = $connection->prepare("UPDATE list_lst SET lst_OptionName=? WHERE lst_ID=1 AND lst_OptionName=?");
+                $s->execute([$id, $en]);
             }
+
+            // 2. Family Roles (lst_ID = 2)
+            $map = [
+                'Head of Household' => 'Kepala Keluarga',
+                'Spouse'            => 'Pasangan (Suami/Istri)',
+                'Child'             => 'Anak',
+                'Other Relative'    => 'Kerabat Lain',
+                'Non Relative'      => 'Bukan Kerabat',
+            ];
+            foreach ($map as $en => $id) {
+                $s = $connection->prepare("UPDATE list_lst SET lst_OptionName=? WHERE lst_ID=2 AND lst_OptionName=?");
+                $s->execute([$id, $en]);
+            }
+
+            // 3. Group Types (lst_ID = 3)
+            $map = [
+                'Ministry'           => 'Pelayanan',
+                'Team'               => 'Tim Kerja',
+                'Bible Study'        => 'PA (Pendalaman Alkitab)',
+                'Sunday School Class' => 'Kelas Sekolah Minggu',
+            ];
+            foreach ($map as $en => $id) {
+                $s = $connection->prepare("UPDATE list_lst SET lst_OptionName=? WHERE lst_ID=3 AND lst_OptionName=?");
+                $s->execute([$id, $en]);
+            }
+
+            // 4. Sunday School Teacher/Student (lst_ID 10, 11, 12)
+            foreach ([10, 12] as $lstId) {
+                $s = $connection->prepare("UPDATE list_lst SET lst_OptionName='Pengajar' WHERE lst_ID=? AND lst_OptionName='Teacher'");
+                $s->execute([$lstId]);
+                $s = $connection->prepare("UPDATE list_lst SET lst_OptionName='Murid' WHERE lst_ID=? AND lst_OptionName='Student'");
+                $s->execute([$lstId]);
+            }
+            $s = $connection->prepare("UPDATE list_lst SET lst_OptionName='Anggota' WHERE lst_ID=11 AND lst_OptionName='Member'");
+            $s->execute();
+
+            // === event_types table ===
+            $s = $connection->prepare("UPDATE event_types SET type_name='Ibadah Minggu' WHERE type_name='Church Service'");
+            $s->execute();
+            $s = $connection->prepare("UPDATE event_types SET type_name='Sekolah Minggu' WHERE type_name='Sunday School'");
+            $s->execute();
+
+            // === donationfund_fun table ===
+            $s = $connection->prepare("UPDATE donationfund_fun SET fun_Name='Persembahan', fun_Description='Pemasukan persembahan untuk anggaran operasional' WHERE fun_Name='Pledges'");
+            $s->execute();
+
+            // === calendars table ===
+            $s = $connection->prepare("UPDATE calendars SET name='Kalender Umum' WHERE name='Public Calendar'");
+            $s->execute();
+            $s = $connection->prepare("UPDATE calendars SET name='Kalender Pribadi' WHERE name='Private Calendar'");
+            $s->execute();
+
+            // === propertytype_prt table ===
+            $s = $connection->prepare("UPDATE propertytype_prt SET prt_Name='Umum', prt_Description='Properti Umum Jemaat' WHERE prt_Name='General' AND prt_Class='p'");
+            $s->execute();
+            $s = $connection->prepare("UPDATE propertytype_prt SET prt_Name='Umum', prt_Description='Properti Umum Keluarga' WHERE prt_Name='General' AND prt_Class='f'");
+            $s->execute();
+            $s = $connection->prepare("UPDATE propertytype_prt SET prt_Name='Umum', prt_Description='Properti Umum Kelompok' WHERE prt_Name='General' AND prt_Class='g'");
+            $s->execute();
+
+            // === property_pro table ===
+            $s = $connection->prepare("UPDATE property_pro SET pro_Name='Penyandang Disabilitas', pro_Description='memiliki disabilitas.', pro_Prompt='Apa jenis disabilitasnya?' WHERE pro_Name='Disabled'");
+            $s->execute();
+            $s = $connection->prepare("UPDATE property_pro SET pro_Name='Orang Tua Tunggal', pro_Description='adalah rumah tangga orang tua tunggal.' WHERE pro_Name='Single Parent'");
+            $s->execute();
+            $s = $connection->prepare("UPDATE property_pro SET pro_Name='Pemuda', pro_Description='berorientasi pada pemuda.' WHERE pro_Name='Youth'");
+            $s->execute();
+
+            // === eventcountnames_evctnm table ===
+            $s = $connection->prepare("UPDATE eventcountnames_evctnm SET evctnm_countname='Jemaat' WHERE evctnm_countname='Members'");
+            $s->execute();
+            $s = $connection->prepare("UPDATE eventcountnames_evctnm SET evctnm_countname='Pengunjung' WHERE evctnm_countname='Visitors'");
+            $s->execute();
+
+            // === queryparameteroptions_qpo (gender, classification display labels) ===
+            $qpoMap = [
+                'Male'                 => 'Laki-laki',
+                'Female'               => 'Perempuan',
+                'Name'                 => 'Nama',
+                'Zip Code'             => 'Kode Pos',
+                'State'                => 'Provinsi',
+                'City'                 => 'Kota',
+                'Home Phone'           => 'Telepon Rumah',
+                'WorkEmail'            => 'Email Kerja',
+                'Member'               => 'Anggota',
+                'Regular Attender'     => 'Jemaat Aktif',
+                'Guest'                => 'Tamu',
+                'Non-Attender'         => 'Bukan Jemaat',
+                'Non-Attender (staff)' => 'Bukan Jemaat (Staf)',
+            ];
+            foreach ($qpoMap as $en => $id) {
+                $s = $connection->prepare("UPDATE queryparameteroptions_qpo SET qpo_Display=? WHERE qpo_Display=?");
+                $s->execute([$id, $en]);
+            }
+
+            self::$bootStrapLogger->info("Database translation check completed.");
+
         } catch (\Exception $e) {
             self::$bootStrapLogger->warning("Failed to translate database lists: " . $e->getMessage());
         }
     }
 }
+
