@@ -1,71 +1,86 @@
 <?php
 /**
  * =====================================================
- * EMERGENCY PASSWORD RESET - ChurchCRM
+ * EMERGENCY ACCOUNT RESET - ChurchCRM
  * =====================================================
- * Gunakan script ini HANYA jika Anda lupa kata sandi admin.
- *
- * CARA PAKAI:
- *   Buka di browser: https://domain-anda.com/reset-password.php
- *
- * KEAMANAN:
- *   Script ini akan OTOMATIS TERHAPUS setelah digunakan.
- *   Jika tidak digunakan, hapus file ini segera!
+ * Masukkan kunci rahasia → semua akun dihapus →
+ * akun Admin baru dibuat: username=Admin, password=changeme
  * =====================================================
  */
 
-// ==================== KONFIGURASI ====================
-// Ganti nilai ini sesuai kebutuhan SEBELUM upload
-define('RESET_SECRET_KEY', 'gereja2024reset'); // WAJIB diubah!
-define('NEW_PASSWORD',     'admin@123');                     // Kata sandi baru
-define('TARGET_USERNAME',  'admin');                          // Username yang direset
-// =====================================================
-
-// Keamanan: hanya bisa diakses jika ada kunci rahasia
-$submitted_key = $_POST['secret_key'] ?? $_GET['key'] ?? '';
-$is_confirmed  = isset($_POST['confirm']) && $_POST['confirm'] === '1';
+// ============ GANTI KUNCI RAHASIA INI ============
+define('RESET_SECRET_KEY', 'gereja2024reset');
+// =================================================
 
 $error   = '';
-$success = '';
-$newpass = '';
+$success = false;
 
-if ($is_confirmed) {
-    if ($submitted_key !== RESET_SECRET_KEY) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $submitted = trim($_POST['secret_key'] ?? '');
+
+    if ($submitted !== RESET_SECRET_KEY) {
         $error = 'Kunci rahasia salah!';
     } else {
         try {
+            // Baca variabel koneksi dari Config.php
             require_once __DIR__ . '/Include/Config.php';
 
-            $dsn  = 'mysql:host=' . $GLOBALS['adb_host'] . ';dbname=' . $GLOBALS['adb_name'] . ';charset=utf8';
-            $pdo  = new PDO($dsn, $GLOBALS['adb_user'], $GLOBALS['adb_pass'], [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            // Config.php menyimpan di $sSERVERNAME, $sUSER, $sPASSWORD, $sDATABASE, $dbPort
+            $host = $sSERVERNAME ?? getenv('MYSQLHOST') ?: '127.0.0.1';
+            $port = $dbPort      ?? getenv('MYSQLPORT') ?: '3306';
+            $user = $sUSER       ?? getenv('MYSQLUSER') ?: 'root';
+            $pass = $sPASSWORD   ?? getenv('MYSQLPASSWORD') ?: '';
+            $db   = $sDATABASE   ?? getenv('MYSQLDATABASE') ?: 'churchcrm';
+
+            // Ganti 'localhost' dengan '127.0.0.1' agar pakai TCP, bukan socket
+            if ($host === 'localhost') {
+                $host = '127.0.0.1';
+            }
+
+            $dsn = "mysql:host={$host};port={$port};dbname={$db};charset=utf8mb4";
+            $pdo = new PDO($dsn, $user, $pass, [
+                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             ]);
 
-            // Ambil usr_per_ID dari username
-            $stmt = $pdo->prepare("SELECT usr_per_ID FROM user_usr WHERE usr_UserName = ?");
-            $stmt->execute([TARGET_USERNAME]);
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            // 1. Hapus semua akun pengguna
+            $pdo->exec("DELETE FROM user_usr");
 
-            if (!$row) {
-                $error = 'Username "' . htmlspecialchars(TARGET_USERNAME) . '" tidak ditemukan di database!';
-            } else {
-                $personId   = $row['usr_per_ID'];
-                $newpass    = NEW_PASSWORD;
-                $bcrypt     = password_hash($newpass, PASSWORD_DEFAULT);
-
-                $update = $pdo->prepare(
-                    "UPDATE user_usr SET usr_Password = ?, usr_NeedPasswordChange = 0, usr_FailedLogins = 0 WHERE usr_UserName = ?"
-                );
-                $update->execute([$bcrypt, TARGET_USERNAME]);
-
-                if ($update->rowCount() > 0) {
-                    $success = true;
-                    // Hapus script ini demi keamanan
-                    @unlink(__FILE__);
-                } else {
-                    $error = 'Gagal memperbarui kata sandi. Periksa koneksi database.';
-                }
+            // 2. Pastikan person ID=1 ada
+            $exists = $pdo->query("SELECT COUNT(*) FROM person_per WHERE per_ID = 1")->fetchColumn();
+            if (!$exists) {
+                $pdo->exec("INSERT INTO person_per (per_ID, per_FirstName, per_LastName, per_Gender) VALUES (1, 'Admin', 'ChurchCRM', 0)");
             }
+
+            // 3. Hash bcrypt untuk 'changeme'
+            $hash = password_hash('changeme', PASSWORD_DEFAULT);
+
+            // 4. Buat akun Admin baru dengan akses penuh
+            $pdo->prepare("
+                INSERT INTO user_usr (
+                    usr_per_ID, usr_Password, usr_NeedPasswordChange,
+                    usr_LastLogin, usr_LoginCount, usr_FailedLogins,
+                    usr_AddRecords, usr_EditRecords, usr_DeleteRecords,
+                    usr_MenuOptions, usr_ManageGroups, usr_Finance,
+                    usr_Notes, usr_Admin, usr_SearchLimit, usr_Style,
+                    usr_showPledges, usr_showPayments, usr_showSince,
+                    usr_defaultFY, usr_currentDeposit, usr_UserName, usr_EditSelf
+                ) VALUES (
+                    1, ?, 1,
+                    NOW(), 0, 0,
+                    1, 1, 1,
+                    1, 1, 1,
+                    1, 1, 10, 'skin-blue',
+                    1, 1, '2016-01-01',
+                    10, 0, 'Admin', 1
+                )
+            ")->execute([$hash]);
+
+            $success = true;
+
+            // 5. Hapus script ini demi keamanan
+            @unlink(__FILE__);
+
         } catch (Exception $e) {
             $error = 'Error: ' . htmlspecialchars($e->getMessage());
         }
@@ -77,12 +92,12 @@ if ($is_confirmed) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Reset Kata Sandi Darurat — ChurchCRM</title>
+<title>Reset Akun Darurat — ChurchCRM</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -90,163 +105,165 @@ if ($is_confirmed) {
     padding: 20px;
   }
   .card {
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 20px;
-    padding: 40px;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 24px;
+    padding: 44px 40px;
     width: 100%;
-    max-width: 440px;
+    max-width: 420px;
     color: #fff;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    box-shadow: 0 32px 64px rgba(0,0,0,0.6);
   }
-  .icon { font-size: 48px; text-align: center; margin-bottom: 16px; }
-  h1 { text-align: center; font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-  .subtitle { text-align: center; color: rgba(255,255,255,0.5); font-size: 13px; margin-bottom: 28px; }
-  .warning {
-    background: rgba(255, 193, 7, 0.15);
-    border: 1px solid rgba(255, 193, 7, 0.4);
-    border-radius: 10px;
-    padding: 12px 16px;
-    font-size: 13px;
-    color: #ffc107;
-    margin-bottom: 24px;
-    line-height: 1.5;
-  }
-  label { display: block; font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 6px; }
-  input[type=password], input[type=text] {
-    width: 100%;
-    padding: 12px 16px;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 10px;
-    color: #fff;
-    font-size: 14px;
-    margin-bottom: 20px;
-    outline: none;
-    transition: border-color .2s;
-  }
-  input:focus { border-color: #e94560; }
-  .info-box {
-    background: rgba(255,255,255,0.05);
-    border-radius: 10px;
+  .logo { text-align: center; font-size: 56px; margin-bottom: 12px; }
+  h1 { text-align: center; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .sub { text-align:center; color:rgba(255,255,255,0.45); font-size:13px; margin-bottom:28px; }
+  .warn {
+    background: rgba(255,193,7,0.12);
+    border: 1px solid rgba(255,193,7,0.35);
+    border-radius: 12px;
     padding: 14px 16px;
     font-size: 13px;
-    color: rgba(255,255,255,0.6);
-    margin-bottom: 20px;
+    color: #ffc107;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+  .warn strong { display:block; margin-bottom:4px; font-size:14px; }
+  label { display:block; font-size:13px; color:rgba(255,255,255,0.6); margin-bottom:7px; }
+  input[type=password] {
+    width: 100%;
+    padding: 13px 16px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 15px;
+    margin-bottom: 18px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  input[type=password]:focus {
+    border-color: #7c5cbf;
+    box-shadow: 0 0 0 3px rgba(124,92,191,0.25);
+  }
+  input::placeholder { color: rgba(255,255,255,0.25); }
+  .info {
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 22px;
     line-height: 1.8;
   }
-  .info-box strong { color: #fff; }
-  button[type=submit] {
+  .info strong { color: #a78bfa; }
+  button {
     width: 100%;
     padding: 14px;
-    background: linear-gradient(135deg, #e94560, #c0392b);
+    background: linear-gradient(135deg, #7c5cbf, #a855f7);
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     color: #fff;
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
+    letter-spacing: .4px;
     transition: transform .15s, box-shadow .15s;
-    letter-spacing: .5px;
   }
-  button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(233,69,96,0.4); }
+  button:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(168,85,247,0.4); }
   .alert-error {
-    background: rgba(220,53,69,0.15);
-    border: 1px solid rgba(220,53,69,0.4);
-    border-radius: 10px;
-    padding: 12px 16px;
-    color: #ff6b7a;
+    background: rgba(220,53,69,0.13);
+    border: 1px solid rgba(220,53,69,0.35);
+    border-radius: 12px;
+    padding: 13px 16px;
+    color: #ff8089;
     font-size: 13px;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
   }
-  .alert-success {
-    background: rgba(40, 167, 69, 0.15);
-    border: 1px solid rgba(40, 167, 69, 0.4);
-    border-radius: 10px;
-    padding: 20px;
-    text-align: center;
-    color: #5cff8a;
-  }
-  .alert-success h2 { font-size: 20px; margin-bottom: 12px; }
-  .cred-box {
-    background: rgba(0,0,0,0.3);
-    border-radius: 8px;
-    padding: 12px 16px;
-    font-family: monospace;
-    font-size: 14px;
-    margin: 12px 0;
-    color: #fff;
+  .success-wrap { text-align: center; }
+  .success-wrap .check { font-size: 64px; margin-bottom: 12px; }
+  .success-wrap h2 { font-size: 22px; margin-bottom: 6px; }
+  .success-wrap p { color:rgba(255,255,255,0.5); font-size:13px; margin-bottom:20px; }
+  .cred {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 18px 20px;
     text-align: left;
+    margin-bottom: 18px;
   }
-  .cred-box span { color: #5cff8a; font-weight: bold; }
-  .login-btn {
-    display: block;
-    margin-top: 16px;
-    padding: 12px;
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 8px;
+  .cred-row { display:flex; justify-content:space-between; align-items:center; padding: 6px 0; }
+  .cred-row:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .cred-label { font-size:12px; color:rgba(255,255,255,0.4); }
+  .cred-value { font-family: monospace; font-size:15px; color:#a78bfa; font-weight:700; }
+  .login-link {
+    display:block;
+    padding: 13px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
     color: #fff;
     text-decoration: none;
-    font-size: 14px;
+    font-size:14px;
+    font-weight:600;
     transition: background .2s;
+    margin-bottom: 14px;
   }
-  .login-btn:hover { background: rgba(255,255,255,0.2); }
-  .deleted-notice {
-    color: rgba(255,255,255,0.4);
-    font-size: 11px;
-    text-align: center;
-    margin-top: 12px;
-  }
+  .login-link:hover { background: rgba(255,255,255,0.15); }
+  .deleted { color:rgba(255,255,255,0.25); font-size:11px; }
 </style>
 </head>
 <body>
 <div class="card">
-  <?php if ($success): ?>
-    <div class="alert-success">
-      <h2>✅ Kata Sandi Berhasil Direset!</h2>
-      <p style="margin-bottom:12px;color:rgba(255,255,255,0.7);font-size:13px;">Gunakan kredensial berikut untuk masuk:</p>
-      <div class="cred-box">
-        👤 Username: <span><?= htmlspecialchars(TARGET_USERNAME) ?></span><br>
-        🔑 Kata Sandi: <span><?= htmlspecialchars($newpass) ?></span>
+
+<?php if ($success): ?>
+  <div class="success-wrap">
+    <div class="check">✅</div>
+    <h2>Akun Berhasil Direset!</h2>
+    <p>Semua akun lama telah dihapus.<br>Gunakan kredensial berikut untuk masuk:</p>
+    <div class="cred">
+      <div class="cred-row">
+        <span class="cred-label">👤 Username</span>
+        <span class="cred-value">Admin</span>
       </div>
-      <p style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:10px;">
-        ⚠️ Segera ganti kata sandi setelah masuk!
-      </p>
-      <a href="<?= rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') ?>/" class="login-btn">
-        🔐 Pergi ke Halaman Masuk
-      </a>
-      <p class="deleted-notice">⚡ Script reset telah otomatis dihapus dari server</p>
-    </div>
-  <?php else: ?>
-    <div class="icon">🔐</div>
-    <h1>Reset Kata Sandi Darurat</h1>
-    <p class="subtitle">ChurchCRM — Pemulihan Akun Admin</p>
-
-    <div class="warning">
-      ⚠️ <strong>Peringatan Keamanan:</strong> Script ini hanya untuk kondisi darurat.
-      Segera hapus file ini setelah digunakan, atau ia akan terhapus otomatis setelah berhasil.
-    </div>
-
-    <?php if ($error): ?>
-      <div class="alert-error">❌ <?= htmlspecialchars($error) ?></div>
-    <?php endif; ?>
-
-    <form method="post">
-      <input type="hidden" name="confirm" value="1">
-
-      <div class="info-box">
-        Username yang akan direset: <strong><?= htmlspecialchars(TARGET_USERNAME) ?></strong><br>
-        Kata sandi baru: <strong><?= htmlspecialchars(NEW_PASSWORD) ?></strong>
+      <div class="cred-row">
+        <span class="cred-label">🔑 Kata Sandi</span>
+        <span class="cred-value">changeme</span>
       </div>
+    </div>
+    <a href="/" class="login-link">🔐 Pergi ke Halaman Masuk</a>
+    <p class="deleted">⚡ File ini telah otomatis dihapus dari server</p>
+  </div>
 
-      <label>Kunci Rahasia (wajib)</label>
-      <input type="password" name="secret_key" placeholder="Masukkan kunci rahasia..." autofocus required>
+<?php else: ?>
+  <div class="logo">🔐</div>
+  <h1>Reset Akun Darurat</h1>
+  <p class="sub">ChurchCRM — Pemulihan Akses Admin</p>
 
-      <button type="submit">🔓 Reset Kata Sandi Sekarang</button>
-    </form>
+  <div class="warn">
+    <strong>⚠️ Peringatan!</strong>
+    Tindakan ini akan <strong>MENGHAPUS SEMUA AKUN PENGGUNA</strong> yang ada,
+    lalu membuat satu akun admin baru. Data jemaat &amp; keuangan tidak terpengaruh.
+  </div>
+
+  <?php if ($error): ?>
+    <div class="alert-error">❌ <?= htmlspecialchars($error) ?></div>
   <?php endif; ?>
+
+  <form method="post">
+    <div class="info">
+      Akun baru yang akan dibuat:<br>
+      👤 Username: <strong>Admin</strong><br>
+      🔑 Kata Sandi: <strong>changeme</strong>
+    </div>
+
+    <label>Kunci Rahasia</label>
+    <input type="password" name="secret_key" placeholder="Masukkan kunci rahasia..." autofocus required>
+
+    <button type="submit">🔓 Reset &amp; Buat Ulang Akun Admin</button>
+  </form>
+<?php endif; ?>
+
 </div>
 </body>
 </html>
