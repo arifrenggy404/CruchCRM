@@ -16,7 +16,7 @@
 
 // ==================== KONFIGURASI ====================
 // Ganti nilai ini sesuai kebutuhan SEBELUM upload
-define('RESET_SECRET_KEY', 'arifrenggy'); // WAJIB diubah!
+define('RESET_SECRET_KEY', 'gereja2024reset'); // WAJIB diubah!
 define('NEW_PASSWORD',     'admin@123');                     // Kata sandi baru
 define('TARGET_USERNAME',  'admin');                          // Username yang direset
 // =====================================================
