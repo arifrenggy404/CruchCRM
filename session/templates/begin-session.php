@@ -113,8 +113,11 @@ $contactWebsite = ChurchMetaData::getChurchWebSite();
 
         <div class="form-footer">
           <span></span>
-          <?php if (SystemConfig::getBooleanValue('bEnableLostPassword') && SystemConfig::isEmailEnabled()): ?>
-            <a href="<?= htmlspecialchars($forgotPasswordURL) ?>"><?= gettext('Forgot password?') ?></a>
+          <?php if (SystemConfig::getBooleanValue('bEnableLostPassword')): ?>
+            <a href="<?= htmlspecialchars($forgotPasswordURL) ?>">
+              <i class="fa-solid fa-key" aria-hidden="true" style="margin-right:4px;font-size:12px;"></i>
+              <?= gettext('Forgot password?') ?>
+            </a>
           <?php endif; ?>
         </div>
 
