@@ -27,8 +27,8 @@ $contactWebsite = ChurchMetaData::getChurchWebSite();
 
     <!-- Card header: logo + church name -->
     <div class="login-card-header">
-      <div class="login-header-logo">
-        <img src="<?= SystemURLs::getRootPath() ?>/Images/logo-churchcrm-350.jpg" alt="ChurchCRM" />
+      <div class="login-header-logo" style="margin-bottom: 15px;">
+        <i class="fa-solid fa-church fa-3x" style="color: var(--tblr-primary, #206bc4);"></i>
       </div>
       <h2 class="login-header-church-name"><?= ChurchMetaData::getChurchName() ?></h2>
       <p class="login-header-tagline"><?= gettext('Community Management Platform') ?></p>

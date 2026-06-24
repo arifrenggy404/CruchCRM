@@ -280,33 +280,7 @@ $MenuFirst = 1;
           </div>
         </div>
 
-        <!-- Support -->
-        <div class="nav-item dropdown ms-1">
-          <a class="nav-link px-0" data-bs-toggle="dropdown" href="#" id="supportMenu">
-            <i class="ti ti-headset"></i>
-          </a>
-          <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-            <a href="<?= SystemURLs::getSupportURL() ?>" target="help" class="dropdown-item"
-               title="<?= gettext('Documentation') ?>">
-              <i class="ti ti-book me-2"></i><?= gettext('Documentation') ?>
-            </a>
-            <div class="dropdown-divider"></div>
-            <a href="#" id="reportIssue" class="dropdown-item"
-               data-bs-toggle="modal" data-bs-target="#IssueReportModal"
-               title="<?= gettext('Report an issue') ?>">
-              <i class="ti ti-bug me-2"></i><?= gettext('Report an issue') ?>
-            </a>
-            <a href="https://discord.gg/tuWyFzj3Nj" target="_blank" class="dropdown-item"
-               title="<?= gettext('Discord Chat') ?>">
-              <i class="fa-brands fa-discord me-2"></i><?= gettext('Discord Chat') ?>
-            </a>
-            <div class="dropdown-divider"></div>
-            <a href="https://docs.churchcrm.io/contributing" target="_blank" class="dropdown-item"
-               title="<?= gettext('Contributing') ?>">
-              <i class="fa-brands fa-github me-2"></i><?= gettext('Documentation') ?>
-            </a>
-          </div>
-        </div>
+        <!-- Support Menu Removed for Custom Branding -->
 
         <!-- User -->
         <?php

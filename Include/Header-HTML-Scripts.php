@@ -3,7 +3,7 @@
 use ChurchCRM\dto\SystemURLs;
 
 ?>
-<title>ChurchCRM: <?= $sPageTitle ?></title>
+<title><?= htmlspecialchars(ChurchCRM\dto\ChurchMetaData::getChurchName() ?: 'Sistem Informasi Jemaat') ?>: <?= htmlspecialchars($sPageTitle) ?></title>
 
 <link rel="icon" href="<?= SystemURLs::getRootPath() ?>/favicon.ico" type="image/x-icon">
 
