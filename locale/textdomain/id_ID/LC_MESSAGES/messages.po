@@ -130,19 +130,19 @@ msgstr "Peran Keluarga"
 
 #: 
 msgid "Depends whether using person or family output method"
-msgstr "Tergantung apakah menggunakan metode produksi pribadi atau keluarga"
+msgstr "Tergantung apakah menggunakan metode keluaran individu atau keluarga"
 
 #: 
 msgid "Custom Field Selection"
-msgstr "Seleksi Area Kustom"
+msgstr "Pilihan Kolom Kustom"
 
 #: 
 msgid "Custom Person Fields"
-msgstr "Area Pribadi Kustom"
+msgstr "Kolom Kustom Anggota"
 
 #: 
 msgid "Custom Family Fields"
-msgstr "Area Keluarga Kustom"
+msgstr "Kolom Kustom Keluarga"
 
 #: 
 msgid "Filters"
@@ -180,7 +180,7 @@ msgstr "Wanita"
 
 #: 
 msgid "Group Membership"
-msgstr "Keanggotaan Kelompok"
+msgstr "Keanggotaan Grup"
 
 #: 
 #, fuzzy
@@ -198,7 +198,7 @@ msgstr "Tanggal Pernikahan"
 
 #: 
 msgid "Output Method:"
-msgstr "Metode Hasil:"
+msgstr "Metode Keluaran:"
 
 #: 
 msgid "CSV Individual Records"
@@ -244,7 +244,7 @@ msgstr "Telepon Kantor"
 
 #: 
 msgid "Mobile Phone"
-msgstr "Telepon Selular"
+msgstr "Telepon Seluler"
 
 #: 
 msgid "Work / Other Email"
@@ -261,7 +261,7 @@ msgstr "Tanggal Pernikahan"
 #. Context: queryparameters_qrp
 #: 
 msgid "Classification"
-msgstr "Penggolongan"
+msgstr "Klasifikasi"
 
 #: 
 msgid "Add Cart to Event"
@@ -318,7 +318,7 @@ msgstr "Tambahkan ke Keluarga"
 
 #: 
 msgid "Add Cart to Group"
-msgstr "Tambahkan Cart di Group"
+msgstr "Tambahkan Keranjang ke Grup"
 
 #: 
 msgid "Select the group to which you would like to add your cart"
@@ -326,15 +326,15 @@ msgstr "Pilih group yang akan ditambahkan cart"
 
 #: 
 msgid "Select Group"
-msgstr "Pilih Group"
+msgstr "Pilih Grup"
 
 #: 
 msgid "No Group Selected"
-msgstr "Belum memilih Group"
+msgstr "Belum ada Grup yang Dipilih"
 
 #: 
 msgid "Add to Group"
-msgstr "Tambahkan ke Group"
+msgstr "Tambahkan ke Grup"
 
 #: 
 msgid "You have no items in your cart."
@@ -346,15 +346,15 @@ msgstr "Kembali ke Menu"
 
 #: 
 msgid "Bulk Mail Presort"
-msgstr "Sortir awal surel bulk"
+msgstr "Penyortiran Awal Email Massal"
 
 #: 
 msgid "Quiet Presort"
-msgstr "Sortir awal hening"
+msgstr "Penyortiran Hening"
 
 #: 
 msgid "Your cart contains"
-msgstr "Daftar Pesanan"
+msgstr "Keranjang Anda berisi"
 
 #: 
 #, fuzzy
@@ -379,19 +379,19 @@ msgstr "Pilih Acara"
 
 #: 
 msgid "Checked In Time"
-msgstr "Jam Hadir"
+msgstr "Waktu Absen Masuk"
 
 #: 
 msgid "Checked In By"
-msgstr "Diisi oleh "
+msgstr "Dicatat masuk oleh "
 
 #: 
 msgid "Checked Out Time"
-msgstr "Jam Pulang "
+msgstr "Waktu Absen Keluar"
 
 #: 
 msgid "Checked Out By"
-msgstr "Diisi oleh "
+msgstr "Dicatat keluar oleh "
 
 #: 
 msgid "Action"
@@ -408,11 +408,11 @@ msgstr "dari"
 
 #: 
 msgid "(No assigned family)"
-msgstr "Belum ada data keluarga"
+msgstr "(Belum ada keluarga yang ditetapkan)"
 
 #: 
 msgid "Convert Individuals to Families"
-msgstr "Konversi beberapa individu menjadi Keluarga"
+msgstr "Ubah Individu Menjadi Keluarga"
 
 #: 
 msgid "Convert Next"
@@ -901,7 +901,7 @@ msgstr "tenggat waktu"
 
 #: 
 msgid "Pledges and Payments"
-msgstr "Permintaan dan pembayaran"
+msgstr "Janji Iman dan Pembayaran"
 
 #: 
 msgid "Value"
@@ -999,7 +999,7 @@ msgstr "Jumlah Anggota Voting"
 
 #: 
 msgid "Giving Report (Tax Statements)"
-msgstr "Memberikan pelaporan (laporan pajak)"
+msgstr "Laporan Kontribusi (Laporan Pajak)"
 
 #: 
 msgid "Zero Givers"
@@ -1007,11 +1007,11 @@ msgstr "Tidak ada yang memberi"
 
 #: 
 msgid "Individual Deposit Report"
-msgstr "Laporan simpanan individu"
+msgstr "Laporan Setoran Individu"
 
 #: 
 msgid "Advanced Deposit Report"
-msgstr "Laporan tabungan canggih"
+msgstr "Laporan Setoran Lanjutan"
 
 #: 
 msgid "Next"
@@ -1024,21 +1024,21 @@ msgstr "sortir berdasarkan keluarga"
 #: 
 #, fuzzy
 msgid "Report Start Date"
-msgstr "Laporan dimulai pda tanggal"
+msgstr "Tanggal Mulai Laporan"
 
 #: 
 #, fuzzy
 msgid "Report End Date"
-msgstr "Laporan diakhiri pada tanggal"
+msgstr "Tanggal Selesai Laporan"
 
 #: 
 #, fuzzy
 msgid "Apply Report Dates To"
-msgstr "Setujui tanggal pelaporan pada tanggal"
+msgstr "Terapkan Tanggal Laporan Ke"
 
 #: 
 msgid "Deposit Date (Default)"
-msgstr "Tanggal penyimpanan (standar)"
+msgstr "Tanggal Setoran (Default)"
 
 #: 
 msgid "Payment Date"
@@ -1047,15 +1047,15 @@ msgstr "Tanggal pembayaran"
 #: 
 #, fuzzy
 msgid "Filter by Deposit"
-msgstr "Sortir berdasarkan simpanan"
+msgstr "Filter Berdasarkan Setoran"
 
 #: 
 msgid "If deposit is selected, date criteria will be ignored."
-msgstr "Jika simpanan dipilih, kriteria tanggal akan diacuhkan"
+msgstr "Jika setoran dipilih, kriteria tanggal akan diabaikan"
 
 #: 
 msgid "All deposits within date range"
-msgstr "Semua simpanan di dalam range data"
+msgstr "Semua setoran dalam rentang tanggal"
 
 #: 
 #, fuzzy
@@ -1133,7 +1133,7 @@ msgstr "Atur data dengan"
 
 #: 
 msgid "Deposit"
-msgstr "Simpanan"
+msgstr "Setoran"
 
 #: 
 msgid "All Data"
@@ -1157,12 +1157,12 @@ msgstr "Buat laporan"
 
 #: 
 msgid "Deposit Listing"
-msgstr "Daftar deposit"
+msgstr "Daftar Setoran"
 
 #: 
 #, fuzzy
 msgid "Deposits"
-msgstr "Simpanan"
+msgstr "Setoran"
 
 #: 
 msgid "Delete Selected Rows"
@@ -1348,7 +1348,7 @@ msgstr "Pilih grup"
 #: 
 #, fuzzy
 msgid "Group Specific Properties"
-msgstr "Properti Spesifik Kelompok"
+msgstr "Properti Spesifik Grup"
 
 #: 
 msgid "Enabled"
@@ -1368,7 +1368,7 @@ msgstr "Aktifkan Properti Spesifik Grup"
 
 #: 
 msgid "Group Roles"
-msgstr "Peran Kelompok"
+msgstr "Peran Grup"
 
 #: 
 msgid "Group role name changes are saved as soon as the box loses focus"
@@ -1405,7 +1405,7 @@ msgstr "data untuk anggota"
 #: 
 #, fuzzy
 msgid "Group-Specific Properties Form Editor"
-msgstr "Editor Formulir Properti Spesifik Kelompok"
+msgstr "Editor Formulir Properti Spesifik Grup"
 
 #: 
 msgid "No properties have been added yet"
@@ -1565,7 +1565,7 @@ msgstr "Kelas Sekolah Minggu"
 
 #: 
 msgid "Deposit Tracking"
-msgstr "Pelacakan Deposit"
+msgstr "Pelacakan Setoran"
 
 #: 
 msgid "Latest Families"
@@ -1605,7 +1605,7 @@ msgstr "Orang"
 
 #: 
 msgid "Group"
-msgstr "Kelompok"
+msgstr "Grup"
 
 #: 
 msgid "Default"
@@ -1882,7 +1882,7 @@ msgstr "Properti"
 
 #: 
 msgid "Query Listing"
-msgstr "Daftar Permintaan"
+msgstr "Daftar Kueri"
 
 #: 
 msgid " record(s) returned"
@@ -1890,7 +1890,7 @@ msgstr "catatan dikembalikan"
 
 #: 
 msgid "Query View"
-msgstr "Tampilan Pertanyaan"
+msgstr "Tampilan Kueri"
 
 #: 
 msgid "This value is required."
@@ -1918,11 +1918,11 @@ msgstr "Nilai ini tidak boleh kurang dari "
 
 #: 
 msgid "Run Query Again"
-msgstr "Jalankan Query Lagi"
+msgstr "Jalankan Kueri Lagi"
 
 #: 
 msgid "Execute Query"
-msgstr "Jalankan Query"
+msgstr "Jalankan Kueri"
 
 #: 
 msgid "Pledge Reminder Report"
@@ -2190,7 +2190,7 @@ msgstr "Gagal mengirim surel PDF ke anggota keluarga."
 
 #: 
 msgid "Group successfully added to the Cart."
-msgstr "Grup berhasil ditambahkan ke Troli."
+msgstr "Grup berhasil ditambahkan ke Keranjang."
 
 #: 
 msgid "Group successfully removed from the Cart."
@@ -2287,7 +2287,7 @@ msgstr "Semua Individu"
 
 #: 
 msgid "Grouped by Family"
-msgstr "Dikelompokkan oleh Keluarga"
+msgstr "Dikelompokkan Berdasarkan Keluarga"
 
 #: 
 msgid "To the parents of"
@@ -2511,7 +2511,7 @@ msgstr "Siswa tidak mengikuti Kelas Sekolah Minggu"
 
 #: 
 msgid "At least one group must be selected to make class lists or attendance sheets."
-msgstr "Setidaknya satu kelompok harus dipilih untuk membuat daftar kelas atau lembar kehadiran."
+msgstr "Setidaknya satu grup harus dipilih untuk membuat daftar kelas atau lembar kehadiran."
 
 #: 
 msgid "Report Details"
@@ -2971,7 +2971,7 @@ msgstr "Data / Laporan"
 
 #: 
 msgid "Query Menu"
-msgstr "Menu Permintaan"
+msgstr "Menu Kueri"
 
 #: 
 msgid "Family Properties"
@@ -5053,15 +5053,15 @@ msgstr "Utilitas salam"
 
 #: 
 msgid "Group Role"
-msgstr "Peran Kelompok"
+msgstr "Peran Grup"
 
 #: 
 msgid "OR Create a Group and add the CART in ONE ACTION"
-msgstr "ATAU Buat Grup dan tambahkan CART dalam SATU AKSI"
+msgstr "ATAU Buat Grup dan tambahkan KERANJANG dalam SATU AKSI"
 
 #: 
 msgid "Create Group + ADD Cart"
-msgstr "Buat Grup + ADD Cart"
+msgstr "Buat Grup + Tambah ke Keranjang"
 
 #: 
 msgid "Profile"
@@ -5141,7 +5141,7 @@ msgstr "Hasilkan Slip Setoran untuk Baris Terpilih (PDF)"
 
 #: 
 msgid "Add All to Cart"
-msgstr "Tambahkan Semua ke Troli"
+msgstr "Tambahkan Semua ke Keranjang"
 
 #: 
 msgid "Remove All from Cart"
@@ -5363,11 +5363,11 @@ msgstr "Latvia (Latvija)"
 
 #: 
 msgid "Record"
-msgstr "Merekam"
+msgstr "Catatan"
 
 #: 
 msgid "Records"
-msgstr "Rekaman"
+msgstr "Catatan"
 
 #: 
 #, fuzzy
@@ -5470,7 +5470,7 @@ msgstr "ZipArchive PHP yang hilang"
 
 #: 
 msgid "Add Results to Cart"
-msgstr "Tambahkan Hasil ke Troli"
+msgstr "Tambahkan Hasil ke Keranjang"
 
 #: 
 msgid "Remove Results from Cart"
@@ -6238,19 +6238,19 @@ msgstr "Ubah Kegiatan"
 
 #: 
 msgid "Check In"
-msgstr "Masuk (Check In)"
+msgstr "Absen Masuk"
 
 #: 
 msgid "Check In Person"
-msgstr "Catat Kehadiran Orang"
+msgstr "Catat Absen Masuk Orang"
 
 #: 
 msgid "Check In to Event"
-msgstr "Masuk ke Kegiatan"
+msgstr "Absen Masuk ke Acara"
 
 #: 
 msgid "Check-in"
-msgstr "Kehadiran"
+msgstr "Kehadiran (Check-In)"
 
 #: 
 msgid "Choose an event..."
@@ -6371,7 +6371,7 @@ msgstr "Cari pengawas..."
 
 #: 
 msgid "Select Event for Check-In"
-msgstr "Pilih Kegiatan untuk Presensi"
+msgstr "Pilih Acara untuk Absen Masuk"
 
 #: 
 msgid "Unclassified"
@@ -7839,11 +7839,11 @@ msgstr "Nama Kategori"
 
 #: 
 msgid "Checked In"
-msgstr "Sudah Masuk"
+msgstr "Absen Masuk"
 
 #: 
 msgid "Checked Out"
-msgstr "Sudah Keluar"
+msgstr "Absen Keluar"
 
 #: 
 msgid "Current Fiscal Year"
@@ -8970,7 +8970,7 @@ msgstr "Persembahan tidak ditemukan"
 
 #: 
 msgid "Group not found"
-msgstr "Kelompok tidak ditemukan"
+msgstr "Grup tidak ditemukan"
 
 #: 
 msgid "Invalid JSON provided for configuration"
@@ -9034,11 +9034,11 @@ msgstr "Haruskan semua pengguna mendaftar di autentikasi dua faktor"
 
 #: 
 msgid "Active Groups"
-msgstr "Kelompok Aktif"
+msgstr "Grup Aktif"
 
 #: 
 msgid "Add New Group"
-msgstr "Tambah Kelompok Baru"
+msgstr "Tambah Grup Baru"
 
 #: 
 msgid "Automatically detect coordinates using address"
@@ -9094,7 +9094,7 @@ msgstr "Geokoding berhasil"
 
 #: 
 msgid "Inactive Groups"
-msgstr "Kelompok Tidak Aktif"
+msgstr "Grup Tidak Aktif"
 
 #: 
 msgid "Language & Localization"
@@ -9158,7 +9158,7 @@ msgstr "Zona Waktu"
 
 #: 
 msgid "Total Groups"
-msgstr "Total Kelompok"
+msgstr "Total Grup"
 
 #: 
 msgid "Used for scheduling events and reporting times."
@@ -9307,11 +9307,11 @@ msgstr "Tambah Orang"
 
 #: 
 msgid "Add Students to Cart"
-msgstr "Tambah Murid ke Daftar"
+msgstr "Tambahkan Murid ke Keranjang"
 
 #: 
 msgid "Add Teachers to Cart"
-msgstr "Tambah Guru ke Daftar"
+msgstr "Tambah Guru ke Keranjang"
 
 #: 
 msgid "Add User"
@@ -9339,11 +9339,11 @@ msgstr "Tambah semua item daftar ke grup"
 
 #: 
 msgid "Add all to Cart"
-msgstr "Tambah semua ke Daftar"
+msgstr "Tambahkan Semua ke Keranjang"
 
 #: 
 msgid "Add cart items to a family"
-msgstr "Tambah item daftar ke keluarga"
+msgstr "Tambahkan anggota di keranjang ke keluarga"
 
 #: 
 msgid "Add everyone in your household — adults and children alike."
@@ -9431,15 +9431,15 @@ msgstr "Tetapkan dan kelola nomor pembeli penggalangan dana"
 
 #: 
 msgid "Assign cart items to a family record"
-msgstr "Tetapkan item daftar ke catatan keluarga"
+msgstr "Tetapkan anggota di keranjang ke data keluarga"
 
 #: 
 msgid "Assign cart items to a group"
-msgstr "Tetapkan item daftar ke grup"
+msgstr "Tetapkan anggota di keranjang ke grup"
 
 #: 
 msgid "Assign cart items to an event"
-msgstr "Tetapkan item daftar ke acara"
+msgstr "Tetapkan anggota di keranjang ke acara"
 
 #: 
 msgid "Assign to a Group"
@@ -9515,7 +9515,7 @@ msgstr "Telepon"
 
 #: 
 msgid "Cart Functions"
-msgstr "Fungsi Daftar"
+msgstr "Fungsi Keranjang"
 
 #: 
 msgid "Change Family Role"
@@ -9563,7 +9563,7 @@ msgstr "Hapus semua data dan mulai dari awal"
 
 #: 
 msgid "Clear all items from cart"
-msgstr "Hapus semua item dari daftar"
+msgstr "Kosongkan semua anggota dari keranjang"
 
 #: 
 msgid "Click to upload photo"
@@ -9783,7 +9783,7 @@ msgstr "Alat Email"
 
 #: 
 msgid "Email cart items"
-msgstr "Email item daftar"
+msgstr "Kirim email ke anggota di keranjang"
 
 #: 
 msgid "Email with hidden recipients"
@@ -10139,7 +10139,7 @@ msgstr "Kelola keluarga, orang, dan informasi demografi"
 
 #: 
 msgid "Manage people in your cart"
-msgstr "Kelola orang dalam daftar Anda"
+msgstr "Kelola orang di keranjang Anda"
 
 #: 
 msgid "Manage person, family, and group property types"
@@ -10167,7 +10167,7 @@ msgstr "Kelola preferensi pribadi dan pengaturan akun Anda"
 
 #: 
 msgid "Map cart items"
-msgstr "Petakan item daftar"
+msgstr "Petakan anggota di keranjang"
 
 #: 
 msgid "Map to Field"
@@ -10441,7 +10441,7 @@ msgstr "Catat mengapa peserta mengunjungi gereja Anda"
 
 #: 
 msgid "Remove all from Cart"
-msgstr "Hapus semua dari Daftar"
+msgstr "Hapus semua dari Keranjang"
 
 #: 
 msgid "Remove from Class"
@@ -12604,7 +12604,7 @@ msgstr "Kembali ke Dasbor Keuangan"
 
 #: 
 msgid "Back to Groups Dashboard"
-msgstr "Kembali ke Dasbor Kelompok"
+msgstr "Kembali ke Dasbor Grup"
 
 #: 
 msgid "Back to People Dashboard"
@@ -12875,7 +12875,7 @@ msgstr "4. Kios"
 
 #: 
 msgid "A class is a Group with type \"Sunday School\". It holds the students and teachers (members with roles)."
-msgstr "Kelas adalah Kelompok dengan jenis \"Sekolah Minggu\". Kelas berisi murid dan pengajar (anggota dengan peran)."
+msgstr "Kelas adalah Grup dengan jenis \"Sekolah Minggu\". Kelas berisi murid dan guru (anggota dengan peran)."
 
 #: 
 msgid "A specific occurrence (e.g. \"Preschool — Apr 12\"). Inherits defaults from the type and is linked to the class group via the audience. This is what volunteers take attendance against."
@@ -13163,7 +13163,7 @@ msgstr "Tautkan acara ke kelompok untuk fungsionalitas absen masuk Kios."
 
 #: 
 msgid "Linked Groups"
-msgstr "Kelompok Tertaut"
+msgstr "Grup Tertaut"
 
 #: 
 msgid "Looking for stuck events..."
@@ -13179,7 +13179,7 @@ msgstr "Kolom wajib tidak diisi: %s"
 
 #: 
 msgid "No Group"
-msgstr "Tidak Ada Kelompok"
+msgstr "Tidak Ada Grup"
 
 #: 
 msgid "No active events found."
@@ -15059,7 +15059,7 @@ msgstr "Kosongkan Cart di Keluarga"
 
 #: 
 msgid "Empty Cart to Group"
-msgstr "Kosongkan Cart di Group"
+msgstr "Kosongkan Keranjang ke Grup"
 
 #: 
 msgid "Empty your entire cart?"
@@ -15444,7 +15444,7 @@ msgstr "Panjang maksimal adalah"
 
 #: 
 msgid "Members added to cart."
-msgstr "Anggota ditambahkan ke daftar."
+msgstr "Anggota ditambahkan ke keranjang."
 
 #: 
 msgid "Minimum length is"
@@ -15529,7 +15529,7 @@ msgstr "Tidak ada alamat email yang tersedia"
 
 #: 
 msgid "No group"
-msgstr "Tidak ada kelompok"
+msgstr "Tidak ada grup"
 
 #: 
 msgid "No members found for this role."
@@ -15930,7 +15930,7 @@ msgstr "Ini juga akan menghapus semua pembayaran yang terkait dengan setoran ini
 
 #: 
 msgid "This will create a group-specific properties table for this group.  You should then add needed properties with the Group-Specific Properties Form Editor."
-msgstr "Ini akan membuat tabel properti khusus grup untuk grup ini. Anda kemudian harus menambahkan properti yang diperlukan dengan Editor Formulir Properti Properti Kelompok."
+msgstr "Ini akan membuat tabel properti khusus grup untuk grup ini. Anda kemudian harus menambahkan properti yang diperlukan dengan Editor Formulir Properti Khusus Grup."
 
 #: 
 msgid "This will replace any previously enrolled 2FA methods"
