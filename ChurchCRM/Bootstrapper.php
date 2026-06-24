@@ -131,6 +131,8 @@ class Bootstrapper
         self::configureLogging();
         self::configureUserEnvironment();
         self::configureLocale();
+        // Re-initialize SystemConfig after locale has been set so that all config tooltips, names, and categories are translated correctly.
+        SystemConfig::init(ConfigQuery::create()->find());
         if (!self::isDBCurrent()) {
             $dbVersion = VersionUtils::getDBVersion();
             $softwareVersion = VersionUtils::getInstalledVersion();

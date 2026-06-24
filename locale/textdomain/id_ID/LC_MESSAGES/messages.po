@@ -16260,3 +16260,84 @@ msgstr "— Pilih Negara —"
 msgid "— Select State —"
 msgstr "— Pilih Provinsi —"
 
+
+
+
+#: 
+msgid "Are you sure you want to remove this person from"
+msgstr "Apakah Anda yakin ingin menghapus orang ini dari"
+
+
+#: 
+msgid "Loading family members..."
+msgstr "Memuat anggota keluarga..."
+
+
+#: 
+msgid "Remove from Group"
+msgstr "Hapus dari Grup"
+
+
+#: 
+msgid "This group only has one role."
+msgstr "Grup ini hanya memiliki satu peran."
+
+
+#: 
+msgid "Who is picking up {{name}}?"
+msgstr "Siapa yang menjemput {{name}}?"
+
+
+#: 
+msgid "Who is bringing in {{name}}?"
+msgstr "Siapa yang membawa {{name}}?"
+
+
+#: 
+msgid "{{hours}}h {{mins}}m left"
+msgstr "Sisa {{hours}}j {{mins}}m"
+
+
+#: 
+msgid "{{count}} min left"
+msgstr "Sisa {{count}} menit"
+
+
+#: 
+msgid "Access denied"
+msgstr "Akses ditolak"
+
+
+#: 
+msgid "Account options"
+msgstr "Opsi akun"
+
+
+#: 
+msgid "All times shown in"
+msgstr "Semua waktu ditampilkan dalam"
+
+
+#: 
+msgid "Current Events"
+msgstr "Acara Saat Ini"
+
+
+#: 
+msgid "Generate Labels"
+msgstr "Buat Label"
+
+
+#: 
+msgid "Register"
+msgstr "Daftar"
+
+
+#: 
+msgid "past"
+msgstr "yang lalu"
+
+
+#: 
+msgid "Cannot delete calendar: %d event(s) are still assigned to it. Remove or reassign them first."
+msgstr "Tidak dapat menghapus kalender: %d acara masih ditugaskan ke kalender ini. Hapus atau tugaskan ulang terlebih dahulu."

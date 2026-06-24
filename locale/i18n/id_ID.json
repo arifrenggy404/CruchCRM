@@ -3886,5 +3886,21 @@
   "— Ignore —": "— Abaikan —",
   "— Select Country —": "— Pilih Negara —",
   "— Select State —": "— Pilih Provinsi —",
-  "Sincerely": "Hormat kami"
+  "Sincerely": "Hormat kami",
+  "Are you sure you want to remove this person from": "Apakah Anda yakin ingin menghapus orang ini dari",
+  "Loading family members...": "Memuat anggota keluarga...",
+  "Remove from Group": "Hapus dari Grup",
+  "This group only has one role.": "Grup ini hanya memiliki satu peran.",
+  "Who is picking up {{name}}?": "Siapa yang menjemput {{name}}?",
+  "Who is bringing in {{name}}?": "Siapa yang membawa {{name}}?",
+  "{{hours}}h {{mins}}m left": "Sisa {{hours}}j {{mins}}m",
+  "{{count}} min left": "Sisa {{count}} menit",
+  "Access denied": "Akses ditolak",
+  "Account options": "Opsi akun",
+  "All times shown in": "Semua waktu ditampilkan dalam",
+  "Current Events": "Acara Saat Ini",
+  "Generate Labels": "Buat Label",
+  "Register": "Daftar",
+  "past": "yang lalu",
+  "Cannot delete calendar: %d event(s) are still assigned to it. Remove or reassign them first.": "Tidak dapat menghapus kalender: %d acara masih ditugaskan ke kalender ini. Hapus atau tugaskan ulang terlebih dahulu."
 }
