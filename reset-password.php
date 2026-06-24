@@ -16,9 +16,9 @@
 
 // ==================== KONFIGURASI ====================
 // Ganti nilai ini sesuai kebutuhan SEBELUM upload
-define('RESET_SECRET_KEY', 'ganti-kunci-rahasia-ini-12345'); // WAJIB diubah!
-define('NEW_PASSWORD',     'Admin@1234');                     // Kata sandi baru
-define('TARGET_USERNAME',  'Admin');                          // Username yang direset
+define('RESET_SECRET_KEY', 'arifrenggy'); // WAJIB diubah!
+define('NEW_PASSWORD',     'admin@123');                     // Kata sandi baru
+define('TARGET_USERNAME',  'admin');                          // Username yang direset
 // =====================================================
 
 // Keamanan: hanya bisa diakses jika ada kunci rahasia
